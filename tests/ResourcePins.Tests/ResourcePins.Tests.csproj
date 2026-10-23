@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/ResourcePins/V3.cs" Link="V3.cs" />
+    <Compile Include="../../src/ResourcePins/ResourceRules.cs" Link="ResourceRules.cs" />
+    <Compile Include="../../src/ResourcePins/PinRegistry.cs" Link="PinRegistry.cs" />
+    <Compile Include="../../src/ResourcePins/PlaceRules.cs" Link="PlaceRules.cs" />
+    <Compile Include="../../src/ResourcePins/RegistryJson.cs" Link="RegistryJson.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0" />
+  </ItemGroup>
+</Project>

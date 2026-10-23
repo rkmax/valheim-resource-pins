@@ -1,0 +1,9 @@
+{
+  "name": "ResourcePins",
+  "version_number": "0.2.0",
+  "website_url": "https://github.com/rkmax/valheim-resource-pins",
+  "description": "Pins ore, berries, mushrooms and other resources on your map while you explore, plus dungeons, camps and traders with an X when looted. Shares pins live with other players.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2351"
+  ]
+}

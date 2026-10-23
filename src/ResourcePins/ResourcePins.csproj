@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>ResourcePins</AssemblyName>
+    <RootNamespace>ResourcePins</RootNamespace>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">$(HOME)/.local/share/Steam/steamapps/common/Valheim</ValheimDir>
+    <ManagedDir>$(ValheimDir)/Valheim_Data/Managed</ManagedDir>
+    <BepInExDir>$(ValheimDir)/BepInEx</BepInExDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="$(ManagedDir)/assembly_valheim.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/assembly_utils.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/assembly_guiutils.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/Splatform.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/SoftReferenceableAssets.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/UnityEngine.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/UnityEngine.PhysicsModule.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/Newtonsoft.Json.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/UnityEngine.UI.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="$(BepInExDir)/core/BepInEx.dll" Private="false" />
+    <Reference Include="$(BepInExDir)/core/0Harmony.dll" Private="false" />
+  </ItemGroup>
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(Deploy)' == 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExDir)/plugins" />
+  </Target>
+</Project>
