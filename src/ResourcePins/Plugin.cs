@@ -10,7 +10,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "rkmax.resourcepins";
     public const string Name = "ResourcePins";
-    public const string Version = "0.2.0";
+    public const string Version = "0.2.1";
 
     internal static ManualLogSource Log;
 

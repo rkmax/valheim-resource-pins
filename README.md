@@ -108,6 +108,8 @@ A pin you delete by hand stays deleted only for you. Turn sharing off with `Enab
 
 The cartography table shares the mod's pins like any other pin, X included.
 
+A dedicated server with the mod also writes what the cartography tables have explored to `BepInEx/ResourcePins/<world>_explored.bin` when it saves the world, only the explored area, no pins. It's for tools outside the game, like a web map; the format is described in `src/ResourcePins/ExploredMask.cs`.
+
 ## Development
 
 Build and copy the DLL to your game (close the game first):

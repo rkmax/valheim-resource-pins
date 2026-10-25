@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Dedicated server: writes the area explored on the cartography tables to `<world>_explored.bin`, for tools outside the game.
+
 ## 0.2.0
 
 First release.
