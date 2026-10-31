@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item.
+- `ResourcePins.ResourceApi.Query` returns the mod's pins near a point as JSON, for other mods.
 
 ## 0.2.1
 

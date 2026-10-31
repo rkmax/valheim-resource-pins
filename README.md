@@ -99,6 +99,10 @@ Messages in the top-left feed.
 
 </details>
 
+## API for other mods
+
+`ResourcePins.ResourceApi.Query(float x, float z, float radius, string filter)` returns the mod's pins within `radius` meters of x, z, nearest first, as JSON: `{"pins":[{"prefab","name","kind":"resource"|"place","x","z","count","readyIn","looted"}]}`, or `{"error":"..."}` when no world is loaded. `filter` (null or empty for all) is a case-insensitive part of the prefab or the shown name. `count` is the nodes under the pin (1 for a place). `readyIn` is the seconds until a bush is ready, only while the pin shows the X, else null. `looted` is for places whose chests are known, else null. It uses only plain types so it can be called by reflection, from the main thread.
+
 ## Limits
 
 - It only sees what your game has loaded, so a node gets a pin once you have been near it.
