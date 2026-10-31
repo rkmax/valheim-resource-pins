@@ -248,4 +248,31 @@ public class PlaceTests
 
         Assert.Empty(_map.Pins);
     }
+
+    [Fact]
+    public void Place_seen_under_a_new_node_after_a_world_reload_keeps_one_pin_and_drops_older_copies()
+    {
+        // Files written before this fix: one copy of the place per world load, each with its own map pin.
+        var data = new RegistryData();
+        for (int i = 0; i < 3; i++)
+        {
+            data.Pins.Add(new PinRecord
+            {
+                Item = "Crypt2", Type = PlaceIcon, Anchor = Entrance, Category = PlaceCatalog.Dungeons,
+                Label = "$location_forestcrypt", Interior = true, Radius = 12,
+                Members = { new Member { Node = new NodeId(1, 100 + i), Kind = MemberKind.Place } },
+            });
+            _map.Add(Entrance, PlaceIcon, "$location_forestcrypt");
+        }
+        var reg = new PinRegistry(data, worldUid: 1);
+        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+
+        reg.ObservePlaces(_map, new[] { Crypt(id: 500) }, new ChestSighting[0], PlaceIcon);
+        reg.ObservePlaces(_map, new[] { Crypt(id: 600) }, new ChestSighting[0], PlaceIcon);
+
+        Assert.Single(_map.Pins);
+        Assert.Single(reg.Pins);
+        Assert.Same(_map.Pins[0], reg.Pins[0].Handle);
+        Assert.True(reg.Knows(new NodeId(1, 600)));
+    }
 }

@@ -402,6 +402,25 @@ public sealed class PinRegistry
         {
             if (Knows(s.Node))
                 continue;
+            // ZDO.Load gives every ZDO a new id on each world load, so a known place comes back under a new node:
+            // the pin of the same location at that spot takes it, and copies added by earlier loads go.
+            List<PinRecord> same = _data.Pins.Where(p =>
+                p.IsPlace && p.Item == s.Location && V3.DistanceXZ(p.Anchor, s.Pos) < SimilarPinDistance).ToList();
+            if (same.Count > 0)
+            {
+                Member place = same[0].Members[0];
+                _owner.Remove(place.Node);
+                place.Node = s.Node;
+                _owner[s.Node] = same[0];
+                Dirty = true;
+                foreach (PinRecord copy in same.Skip(1))
+                {
+                    Forget(copy, ignore: false);
+                    map.Remove(copy.Handle);
+                    Log?.Invoke("remove", copy, "duplicate");
+                }
+                continue;
+            }
             object adopted = Adoptable(map, s.Pos, placeType, s.Label);
             if (adopted == null && map.PinsNear(s.Pos, PlaceGuardDistance).Any(p => !IsBound(p)))
                 continue;
