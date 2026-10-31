@@ -32,7 +32,7 @@ Download `ResourcePins-<version>.zip` from [Releases](../../releases), then:
 
 ### Map filter
 
-With the large map open, press `F` (`FilterKey`) to show only part of the mod's pins: first only places, then only one item (Copper ore, Raspberries, etc), and back to all. A message at the center names what you see. Your own pins always show, and nothing is deleted or saved: it only hides pins on screen, and the filter resets when you load a world.
+With the large map open, press `F` (`FilterKey`) to show only part of the mod's pins: first only places, then only one item (Copper ore, Raspberries, etc), and back to all. `Shift+F` goes back one step. A line under the biome name shows the active filter. Your own pins always show, and nothing is deleted or saved: it only hides pins on screen, and the filter resets when you load a world.
 
 If something that is not a resource gets a pin, add its name to `Blocklist`. With `Log = true` every pin change goes to `BepInEx/ResourcePins/log.csv`.
 
@@ -78,7 +78,7 @@ Messages in the top-left feed.
 
 ### Map
 
-- `FilterKey` (F): key that cycles the large map filter. See [Map filter](#map-filter).
+- `FilterKey` (F): key that cycles the large map filter; with Shift it goes back. See [Map filter](#map-filter).
 
 ### Sync
 

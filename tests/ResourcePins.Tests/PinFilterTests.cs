@@ -31,6 +31,17 @@ public class PinFilterTests
     }
 
     [Fact]
+    public void Shift_key_steps_back_and_wraps_from_everything_to_the_last_item()
+    {
+        List<string> options = PinFilter.Options(new[] { Resource("TinOre"), Place(), Resource("CopperOre") });
+
+        Assert.Equal("TinOre", PinFilter.Next("", options, back: true));
+        Assert.Equal(PinFilter.Places, PinFilter.Next("CopperOre", options, back: true));
+        Assert.Equal("", PinFilter.Next(PinFilter.Places, options, back: true));
+        Assert.Equal("", PinFilter.Next("SilverOre", options, back: true));
+    }
+
+    [Fact]
     public void Filter_on_an_item_that_is_gone_goes_back_to_everything()
     {
         List<string> options = PinFilter.Options(new[] { Resource("TinOre") });

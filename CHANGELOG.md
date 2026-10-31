@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item.
+- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item; Shift+F goes back. A line under the biome name shows the active filter.
 - `ResourcePins.ResourceApi.Query` returns the mod's pins near a point as JSON, for other mods.
 
 ## 0.2.1

@@ -83,7 +83,7 @@ public class Plugin : BaseUnityPlugin
             "Shows a top-left message when a place gets a pin and when all its loot is taken (its pin gets the X).");
 
         FilterKey = Config.Bind("Map", "FilterKey", new KeyboardShortcut(KeyCode.F),
-            "Key that cycles the large map between all pins, only places and only one item (one press each). " +
+            "Key that cycles the large map between all pins, only places and only one item (one press each); with Shift it goes back. " +
             "Only hides the mod's pins on screen, nothing is deleted. Your own pins always show.");
 
         Sync = Config.Bind("Sync", "Enabled", true,

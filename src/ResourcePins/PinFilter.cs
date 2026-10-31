@@ -30,13 +30,16 @@ public static class PinFilter
         return options;
     }
 
-    /// <summary>The option after <paramref name="current"/>; back to everything after the last, or when it is gone.</summary>
-    public static string Next(string current, IReadOnlyList<string> options)
+    /// <summary>
+    /// The option after <paramref name="current"/>, or before it when <paramref name="back"/>, wrapping around;
+    /// back to everything when it is gone.
+    /// </summary>
+    public static string Next(string current, IReadOnlyList<string> options, bool back = false)
     {
         int i = -1;
         for (int k = 0; k < options.Count; k++)
             if (options[k] == (current ?? ""))
                 i = k;
-        return i < 0 ? "" : options[(i + 1) % options.Count];
+        return i < 0 ? "" : options[(i + (back ? options.Count - 1 : 1)) % options.Count];
     }
 }

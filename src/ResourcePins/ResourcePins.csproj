@@ -25,6 +25,7 @@
     <Reference Include="$(ManagedDir)/Newtonsoft.Json.dll" Private="false" />
     <Reference Include="$(ManagedDir)/UnityEngine.UI.dll" Private="false" />
     <Reference Include="$(ManagedDir)/UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="$(ManagedDir)/Unity.TextMeshPro.dll" Private="false" />
     <Reference Include="$(BepInExDir)/core/BepInEx.dll" Private="false" />
     <Reference Include="$(BepInExDir)/core/0Harmony.dll" Private="false" />
   </ItemGroup>
