@@ -24,6 +24,9 @@ internal static class Tracker
     private static string _path;
     private static float _nextScan;
 
+    /// <summary>The registry of the loaded world and character, or null.</summary>
+    internal static PinRegistry Registry => _registry;
+
     /// <summary>
     /// Runs inside Minimap.LoadMapData. The game retries it every frame until it returns, so an exception here
     /// would keep the game loading forever. Any failure turns the mod off for the session instead.
@@ -52,6 +55,7 @@ internal static class Tracker
         _registry = new PinRegistry(Load(_path), world.m_uid) { Log = PinLog.Event };
         _registry.Log += Notices.Event;
         Notices.Mute();
+        MapFilter.Reset();
         _registry.Bind(MapPins.All(minimap).Select(p => ((object)p, MapPins.ToV3(p.m_pos), (int)p.m_type)));
         Plugin.Log.LogInfo($"Registry {Path.GetFileName(_path)}: {_registry.Pins.Count} pins.");
     }

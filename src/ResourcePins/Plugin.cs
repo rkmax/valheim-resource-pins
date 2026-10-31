@@ -2,6 +2,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using UnityEngine;
 
 namespace ResourcePins;
 
@@ -33,6 +34,7 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> NotifyPlaces;
     internal static ConfigEntry<bool> LogEvents;
     internal static ConfigEntry<bool> Sync;
+    internal static ConfigEntry<KeyboardShortcut> FilterKey;
 
     private void Awake()
     {
@@ -80,6 +82,10 @@ public class Plugin : BaseUnityPlugin
         NotifyPlaces = Config.Bind("Notices", "Places", true,
             "Shows a top-left message when a place gets a pin and when all its loot is taken (its pin gets the X).");
 
+        FilterKey = Config.Bind("Map", "FilterKey", new KeyboardShortcut(KeyCode.F),
+            "Key that cycles the large map between all pins, only places and only one item (one press each). " +
+            "Only hides the mod's pins on screen, nothing is deleted. Your own pins always show.");
+
         Sync = Config.Bind("Sync", "Enabled", true,
             "Shares the mod's pins live with other players who have the mod: new pins, pins whose resource is gone and the X. " +
             "Pins you delete by hand stay deleted only for you. Works on a vanilla server. If the dedicated server has the mod, " +
@@ -104,6 +110,7 @@ public class Plugin : BaseUnityPlugin
     private void Update()
     {
         Tracker.Tick();
+        MapFilter.Tick();
         ServerStore.Tick();
         PinSync.Flush();
     }

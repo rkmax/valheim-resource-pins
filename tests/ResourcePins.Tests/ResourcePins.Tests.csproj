@@ -8,6 +8,7 @@
     <Compile Include="../../src/ResourcePins/ResourceRules.cs" Link="ResourceRules.cs" />
     <Compile Include="../../src/ResourcePins/PinRegistry.cs" Link="PinRegistry.cs" />
     <Compile Include="../../src/ResourcePins/PlaceRules.cs" Link="PlaceRules.cs" />
+    <Compile Include="../../src/ResourcePins/PinFilter.cs" Link="PinFilter.cs" />
     <Compile Include="../../src/ResourcePins/RegistryJson.cs" Link="RegistryJson.cs" />
     <Compile Include="../../src/ResourcePins/ExploredMask.cs" Link="ExploredMask.cs" />
   </ItemGroup>

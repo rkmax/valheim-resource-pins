@@ -30,6 +30,10 @@ Download `ResourcePins-<version>.zip` from [Releases](../../releases), then:
 - No place pin is added when there is another pin not made by the mod within 5 m (your own marker, a Vegvisir boss pin, a teammate's pin).
 - "Pin: Burial Chambers" when a place gets pinned and "Burial Chambers: looted" when it gets the X, in the same message feed.
 
+### Map filter
+
+With the large map open, press `F` (`FilterKey`) to show only part of the mod's pins: first only places, then only one item (Copper ore, Raspberries, etc), and back to all. A message at the center names what you see. Your own pins always show, and nothing is deleted or saved: it only hides pins on screen, and the filter resets when you load a world.
+
 If something that is not a resource gets a pin, add its name to `Blocklist`. With `Log = true` every pin change goes to `BepInEx/ResourcePins/log.csv`.
 
 ## Configuration
@@ -71,6 +75,10 @@ Messages in the top-left feed.
 - `Removed` (true): when a pin is removed because the resource is gone.
 - `Regrow` (false): when a regrowing resource is picked or ready again.
 - `Places` (true): when a place gets a pin and when it's looted.
+
+### Map
+
+- `FilterKey` (F): key that cycles the large map filter. See [Map filter](#map-filter).
 
 ### Sync
 
