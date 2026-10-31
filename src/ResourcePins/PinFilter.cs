@@ -30,6 +30,9 @@ public static class PinFilter
         return options;
     }
 
+    /// <summary>How many of the mod's pins the filter shows (all of them for "").</summary>
+    public static int Count(IEnumerable<PinRecord> pins, string filter) => pins.Count(p => !Hidden(p, filter));
+
     /// <summary>
     /// The option after <paramref name="current"/>, or before it when <paramref name="back"/>, wrapping around;
     /// back to everything when it is gone.

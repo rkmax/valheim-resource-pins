@@ -49,4 +49,12 @@ public class PinFilterTests
         Assert.Equal("", PinFilter.Next("SilverOre", options));
         Assert.Equal(new[] { "", "TinOre" }, options.ToArray());
     }
+
+    [Fact]
+    public void Each_option_counts_the_pins_it_shows()
+    {
+        PinRecord[] pins = { Resource("TinOre"), Place(), Resource("CopperOre"), Resource("TinOre") };
+
+        Assert.Equal(new[] { 4, 1, 1, 2 }, PinFilter.Options(pins).Select(o => PinFilter.Count(pins, o)).ToArray());
+    }
 }

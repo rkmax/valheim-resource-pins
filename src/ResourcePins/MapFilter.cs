@@ -5,15 +5,14 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using TMPro;
 using UnityEngine;
 
 namespace ResourcePins;
 
 /// <summary>
-/// Shows one kind of the mod's pins on the large map: a key cycles everything, places, then each pinned item
-/// (Shift goes back). Only the pin icons and names on screen are hidden; the pins, the registry and the character file
-/// stay as they are, and pins the player placed are never touched.
+/// Shows one kind of the mod's pins on the large map and the minimap: a key cycles everything, places, then each pinned
+/// item (Shift goes back), or a click on the large map's list picks one. Only the pin icons and names on screen are
+/// hidden; the pins, the registry and the character file stay as they are, and pins the player placed are never touched.
 /// </summary>
 internal static class MapFilter
 {
@@ -23,14 +22,12 @@ internal static class MapFilter
 
     private static string _current = "";
     private static bool _changed;
-    private static TextMeshProUGUI _label;
 
     /// <summary>A new map was loaded: start showing everything.</summary>
     internal static void Reset()
     {
         _current = "";
-        if (_label != null)
-            _label.gameObject.SetActive(false);
+        FilterPanel.Reset();
     }
 
     /// <summary>The pin's name as the map shows it.</summary>
@@ -38,6 +35,29 @@ internal static class MapFilter
     {
         string name = pin.Handle is Minimap.PinData p ? p.m_name : pin.Label;
         return Localization.instance != null && !string.IsNullOrEmpty(name) ? Localization.instance.Localize(name) : name ?? pin.Item;
+    }
+
+    /// <summary>The option's name as the panel and the legend show it.</summary>
+    internal static string OptionName(PinRegistry registry, string option)
+    {
+        if (option.Length == 0)
+            return "All";
+        if (option == PinFilter.Places)
+            return "Places";
+        PinRecord pin = registry.Pins.FirstOrDefault(p => !p.IsPlace && p.Item == option);
+        return pin != null ? ShownName(pin) : option;
+    }
+
+    /// <summary>Picks a filter (a click on the panel or a key) and applies it to the map at once.</summary>
+    internal static void Select(string filter)
+    {
+        PinRegistry registry = Tracker.Registry;
+        if (registry == null || Minimap.instance == null)
+            return;
+        _current = filter;
+        _changed = true;
+        UpdatePinsNow(Minimap.instance);
+        FilterPanel.Show(registry, _current);
     }
 
     internal static void Tick()
@@ -53,41 +73,7 @@ internal static class MapFilter
             (UnityInput.Current.GetKey(KeyCode.LeftShift) || UnityInput.Current.GetKey(KeyCode.RightShift));
         if (!next && !back)
             return;
-        List<string> options = PinFilter.Options(registry.Pins);
-        _current = PinFilter.Next(_current, options, back);
-        _changed = true;
-        UpdatePinsNow(Minimap.instance);
-        ShowLabel(registry, options, key);
-    }
-
-    /// <summary>The active filter, under the biome name of the large map, in its font; hidden while showing all pins.</summary>
-    private static void ShowLabel(PinRegistry registry, List<string> options, KeyboardShortcut key)
-    {
-        if (_label == null)
-        {
-            TMP_Text biome = Minimap.instance.m_biomeNameLarge;
-            var go = new GameObject("ResourcePinsFilter", typeof(RectTransform));
-            go.transform.SetParent(biome.transform, false);
-            _label = go.AddComponent<TextMeshProUGUI>();
-            _label.font = biome.font;
-            _label.fontSharedMaterial = biome.fontSharedMaterial;
-            _label.color = biome.color;
-            _label.fontSize = biome.fontSize * 0.6f;
-            _label.alignment = TextAlignmentOptions.Top;
-            _label.textWrappingMode = TextWrappingModes.NoWrap;
-            _label.raycastTarget = false;
-            RectTransform rect = _label.rectTransform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(1000f, _label.fontSize * 1.5f);
-        }
-        _label.gameObject.SetActive(_current.Length > 0);
-        if (_current.Length == 0)
-            return;
-        string text = _current == PinFilter.Places ? "Places"
-            : ShownName(registry.Pins.First(p => !p.IsPlace && p.Item == _current));
-        _label.text = $"Pins: {text} ({options.IndexOf(_current)} of {options.Count - 1}) - {key} next, Shift+{key} previous";
+        Select(PinFilter.Next(_current, PinFilter.Options(registry.Pins), back));
     }
 
     [HarmonyPatch(typeof(Minimap), "UpdatePins")]
@@ -96,7 +82,12 @@ internal static class MapFilter
         private static void Postfix(Minimap __instance)
         {
             PinRegistry registry = Tracker.Registry;
-            if (registry == null || __instance.m_mode != Minimap.MapMode.Large || _current.Length == 0 && !_changed)
+            if (registry == null)
+                return;
+            // Both maps are drawn by UpdatePins, which makes new icons when the map is opened or closed.
+            if (__instance.m_mode == Minimap.MapMode.Large)
+                FilterPanel.Refresh(registry, _current);
+            if (_current.Length == 0 && !_changed)
                 return;
             _changed = false;
             foreach (PinRecord pin in registry.Pins)

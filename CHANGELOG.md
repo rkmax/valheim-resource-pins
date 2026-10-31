@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item; Shift+F goes back. A line under the biome name shows the active filter.
+- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item; Shift+F goes back. A list on the left of the large map shows the filters (icon, name, pin count) and a click picks one; `FilterPanel` turns it off. The minimap shows the same filter, with a legend under it.
 - `ResourcePins.ResourceApi.Query` returns the mod's pins near a point as JSON, for other mods.
 - A place no longer gets one more pin each time the world loads; the extra copies go when you are near it again.
 

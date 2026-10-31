@@ -35,6 +35,7 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> LogEvents;
     internal static ConfigEntry<bool> Sync;
     internal static ConfigEntry<KeyboardShortcut> FilterKey;
+    internal static ConfigEntry<bool> FilterPanel;
 
     private void Awake()
     {
@@ -85,6 +86,8 @@ public class Plugin : BaseUnityPlugin
         FilterKey = Config.Bind("Map", "FilterKey", new KeyboardShortcut(KeyCode.F),
             "Key that cycles the large map between all pins, only places and only one item (one press each); with Shift it goes back. " +
             "Only hides the mod's pins on screen, nothing is deleted. Your own pins always show.");
+        FilterPanel = Config.Bind("Map", "FilterPanel", true,
+            "Shows a list of the filters on the left of the large map: click one to show only those pins.");
 
         Sync = Config.Bind("Sync", "Enabled", true,
             "Shares the mod's pins live with other players who have the mod: new pins, pins whose resource is gone and the X. " +
