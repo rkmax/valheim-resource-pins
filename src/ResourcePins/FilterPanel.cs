@@ -8,8 +8,9 @@ using UnityEngine.UI;
 namespace ResourcePins;
 
 /// <summary>
-/// The map filter on screen: a list of the options at the left of the large map (click one to pick it), and a legend
-/// under the minimap that names the active one. The vanilla large map keeps the pin-type icons, the ping panel and the
+/// The map filter on screen: a list of the options at the left of the large map (click one to pick it; the places and
+/// biome headers pick their whole group and fold it with their +/- button), and a legend under the minimap that names
+/// the active one. The vanilla large map keeps the pin-type icons, the ping panel and the
 /// biome name on the right, and the key hints and the share toggle along the bottom; the left edge is free.
 /// </summary>
 internal static class FilterPanel
@@ -20,7 +21,8 @@ internal static class FilterPanel
     {
         public RectTransform Rect;
         public Image Background, Icon;
-        public TextMeshProUGUI Name, Count;
+        public TextMeshProUGUI Name, Count, Fold;
+        public Button FoldButton;
         public string Key = "";
     }
 
@@ -28,11 +30,15 @@ internal static class FilterPanel
     private static readonly Color ActiveColor = new(1f, 0.75f, 0.25f, 0.4f);
     private static readonly Color IdleColor = new(1f, 1f, 1f, 0f);
 
+    /// <summary>Headers folded in this session; nothing is saved.</summary>
+    internal static readonly HashSet<string> Collapsed = new();
+
     private static GameObject _panel;
     private static RectTransform _panelRect, _viewport, _content;
     private static readonly List<Row> Rows = new();
     private static int _rows, _signature;
     private static int _wheelFrame = -1;
+    private static string _active = "";
 
     private static GameObject _legend;
     private static Image _legendIcon;
@@ -69,13 +75,7 @@ internal static class FilterPanel
             Create();
         }
         _panel.SetActive(true);
-        // Order-independent and allocation-free: a pin added, removed or of another item changes it.
-        int signature = registry.Pins.Count;
-        for (int i = 0; i < registry.Pins.Count; i++)
-        {
-            PinRecord pin = registry.Pins[i];
-            signature += pin.IsPlace ? 17 : pin.Item?.GetHashCode() ?? 0;
-        }
+        int signature = MapFilter.Signature(registry);
         if (signature != _signature || Rows.Count == 0)
         {
             _signature = signature;
@@ -125,7 +125,7 @@ internal static class FilterPanel
 
     private static void Rebuild(PinRegistry registry)
     {
-        List<string> options = PinFilter.Options(registry.Pins);
+        List<string> options = PinFilter.Options(registry.Pins, MapFilter.ItemBiomes(registry), Collapsed);
         while (Rows.Count < options.Count)
             Rows.Add(NewRow());
         for (int i = 0; i < Rows.Count; i++)
@@ -140,6 +140,13 @@ internal static class FilterPanel
             row.Name.text = MapFilter.OptionName(registry, key);
             row.Count.text = PinFilter.Count(registry.Pins, key).ToString();
             row.Icon.sprite = Icon(key);
+            bool header = PinFilter.IsHeader(key);
+            row.FoldButton.gameObject.SetActive(header);
+            row.Fold.text = Collapsed.Contains(key) ? "+" : "-";
+            // Children sit one step in; a header's fold button takes the step.
+            float iconX = header ? 26f : PinFilter.IsChild(key) ? 30f : 6f;
+            ((RectTransform)row.Icon.transform).anchoredPosition = new Vector2(iconX, 0f);
+            row.Name.rectTransform.offsetMin = new Vector2(iconX + RowHeight + 2f, 0f);
         }
         _rows = options.Count;
         _content.sizeDelta = new Vector2(0f, _rows * RowHeight);
@@ -169,11 +176,25 @@ internal static class FilterPanel
         iconRect.anchoredPosition = new Vector2(6f, 0f);
         iconRect.sizeDelta = new Vector2(RowHeight - 6f, RowHeight - 6f);
 
+        var fold = new GameObject("Fold", typeof(RectTransform));
+        fold.transform.SetParent(go.transform, false);
+        fold.AddComponent<Image>().color = IdleColor;
+        var foldRect = (RectTransform)fold.transform;
+        foldRect.anchorMin = foldRect.anchorMax = foldRect.pivot = new Vector2(0f, 0.5f);
+        foldRect.anchoredPosition = Vector2.zero;
+        foldRect.sizeDelta = new Vector2(24f, RowHeight);
+        row.FoldButton = fold.AddComponent<Button>();
+        row.FoldButton.transition = Selectable.Transition.None;
+        row.FoldButton.onClick.AddListener(() => ToggleFold(row.Key));
+        row.Fold = NewText("Text", fold.transform, font, TextAlignmentOptions.Center);
+        row.Fold.rectTransform.anchorMin = Vector2.zero;
+        row.Fold.rectTransform.anchorMax = Vector2.one;
+        row.Fold.rectTransform.offsetMin = row.Fold.rectTransform.offsetMax = Vector2.zero;
+
         row.Name = NewText("Name", go.transform, font, TextAlignmentOptions.Left);
         row.Name.overflowMode = TextOverflowModes.Ellipsis;
         row.Name.rectTransform.anchorMin = Vector2.zero;
         row.Name.rectTransform.anchorMax = Vector2.one;
-        row.Name.rectTransform.offsetMin = new Vector2(RowHeight + 8f, 0f);
         row.Name.rectTransform.offsetMax = new Vector2(-48f, 0f);
 
         row.Count = NewText("Count", go.transform, font, TextAlignmentOptions.Right);
@@ -199,8 +220,21 @@ internal static class FilterPanel
         return text;
     }
 
+    private static void ToggleFold(string key)
+    {
+        PinRegistry registry = Tracker.Registry;
+        if (registry == null || !Collapsed.Remove(key))
+            Collapsed.Add(key);
+        if (registry == null)
+            return;
+        Rebuild(registry);
+        Mark(_active);
+        Fit();
+    }
+
     private static void Mark(string current)
     {
+        _active = current;
         if (_panel == null)
             return;
         for (int i = 0; i < _rows; i++)
@@ -242,9 +276,9 @@ internal static class FilterPanel
 
     private static Sprite Icon(string key)
     {
-        if (key.Length == 0)
+        if (key.Length == 0 || key != PinFilter.Places && PinFilter.IsHeader(key))
             return PinSprite(Plugin.PinIcon.Value);
-        if (key == PinFilter.Places)
+        if (key == PinFilter.Places || PinFilter.GroupName(key) != null && !PinFilter.IsHeader(key))
             return PinSprite(Plugin.PlaceIcon.Value);
         Sprite icon = ObjectDB.instance != null && ObjectDB.instance.TryGetItemPrefab(key, out GameObject prefab)
             ? prefab.GetComponent<ItemDrop>()?.m_itemData.GetIcon() : null;

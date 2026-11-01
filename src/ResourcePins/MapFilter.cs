@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -10,8 +12,8 @@ using UnityEngine;
 namespace ResourcePins;
 
 /// <summary>
-/// Shows one kind of the mod's pins on the large map and the minimap: a key cycles everything, places, then each pinned
-/// item (Shift goes back), or a click on the large map's list picks one. Only the pin icons and names on screen are
+/// Shows one kind of the mod's pins on the large map and the minimap: a key cycles everything, places and its categories,
+/// then each biome group and its items (Shift goes back), or a click on the large map's list picks one. Only the pin icons and names on screen are
 /// hidden; the pins, the registry and the character file stay as they are, and pins the player placed are never touched.
 /// </summary>
 internal static class MapFilter
@@ -22,6 +24,44 @@ internal static class MapFilter
 
     private static string _current = "";
     private static bool _changed;
+
+    // Each pin's biome, read once from the world generator at its anchor.
+    private static readonly ConditionalWeakTable<PinRecord, string> PinBiomes = new();
+    private static IReadOnlyDictionary<string, string> _itemBiomes = new Dictionary<string, string>();
+    private static int _biomesSignature;
+
+    private static string BiomeOf(PinRecord pin)
+    {
+        if (PinBiomes.TryGetValue(pin, out string biome))
+            return biome;
+        biome = WorldGenerator.instance.GetBiome(new Vector3(pin.Anchor.X, pin.Anchor.Y, pin.Anchor.Z)).ToString();
+        PinBiomes.Add(pin, biome);
+        return biome;
+    }
+
+    /// <summary>Order-independent and allocation-free: a pin added, removed or of another item changes it.</summary>
+    internal static int Signature(PinRegistry registry)
+    {
+        int signature = registry.Pins.Count;
+        for (int i = 0; i < registry.Pins.Count; i++)
+        {
+            PinRecord pin = registry.Pins[i];
+            signature += pin.IsPlace ? 17 : pin.Item?.GetHashCode() ?? 0;
+        }
+        return signature;
+    }
+
+    /// <summary>The biome group of each pinned item, rebuilt only when the pins change.</summary>
+    internal static IReadOnlyDictionary<string, string> ItemBiomes(PinRegistry registry)
+    {
+        int signature = Signature(registry);
+        if (signature != _biomesSignature && WorldGenerator.instance != null)
+        {
+            _biomesSignature = signature;
+            _itemBiomes = PinFilter.ItemBiomes(registry.Pins, BiomeOf);
+        }
+        return _itemBiomes;
+    }
 
     /// <summary>A new map was loaded: start showing everything.</summary>
     internal static void Reset()
@@ -44,8 +84,18 @@ internal static class MapFilter
             return "All";
         if (option == PinFilter.Places)
             return "Places";
+        string group = PinFilter.GroupName(option);
+        if (group != null)
+            return option == PinFilter.Biome(group) ? BiomeName(group) : group;
         PinRecord pin = registry.Pins.FirstOrDefault(p => !p.IsPlace && p.Item == option);
         return pin != null ? ShownName(pin) : option;
+    }
+
+    /// <summary>A biome's name from the game's own token, or its enum name spaced out when there is none.</summary>
+    private static string BiomeName(string biome)
+    {
+        string name = Localization.instance?.Localize("$biome_" + biome.ToLower());
+        return string.IsNullOrEmpty(name) || name[0] == '[' ? Regex.Replace(biome, "(?<=[a-z])(?=[A-Z])", " ") : name;
     }
 
     /// <summary>Picks a filter (a click on the panel or a key) and applies it to the map at once.</summary>
@@ -73,7 +123,7 @@ internal static class MapFilter
             (UnityInput.Current.GetKey(KeyCode.LeftShift) || UnityInput.Current.GetKey(KeyCode.RightShift));
         if (!next && !back)
             return;
-        Select(PinFilter.Next(_current, PinFilter.Options(registry.Pins), back));
+        Select(PinFilter.Next(_current, PinFilter.Options(registry.Pins, ItemBiomes(registry), FilterPanel.Collapsed), back));
     }
 
     [HarmonyPatch(typeof(Minimap), "UpdatePins")]
@@ -90,11 +140,12 @@ internal static class MapFilter
             if (_current.Length == 0 && !_changed)
                 return;
             _changed = false;
+            IReadOnlyDictionary<string, string> itemBiomes = ItemBiomes(registry);
             foreach (PinRecord pin in registry.Pins)
             {
                 if (pin.Handle is not Minimap.PinData data)
                     continue;
-                bool hidden = PinFilter.Hidden(pin, _current);
+                bool hidden = PinFilter.Hidden(pin, _current, itemBiomes);
                 if (data.m_uiElement != null && data.m_uiElement.gameObject.activeSelf == hidden)
                     data.m_uiElement.gameObject.SetActive(!hidden);
                 // UpdatePins turns the name on by itself; only the hidden ones are kept off.
@@ -122,8 +173,9 @@ internal static class MapFilter
             GameObject go = Traverse.Create(__instance).Field<GameObject>("go").Value;
             if (go == null || !go.activeSelf)
                 return;
+            IReadOnlyDictionary<string, string> itemBiomes = ItemBiomes(registry);
             foreach (PinRecord pin in registry.Pins)
-                if (pin.Handle is Minimap.PinData data && data.m_NamePinData?.PinNameGameObject == go && PinFilter.Hidden(pin, _current))
+                if (pin.Handle is Minimap.PinData data && data.m_NamePinData?.PinNameGameObject == go && PinFilter.Hidden(pin, _current, itemBiomes))
                     go.SetActive(false);
         }
     }

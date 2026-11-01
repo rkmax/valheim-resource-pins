@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item; Shift+F goes back. A list on the left of the large map shows the filters (icon, name, pin count) and a click picks one; `FilterPanel` turns it off. The minimap shows the same filter, with a legend under it.
+- Large map: a key (`FilterKey`, F) cycles between all pins, only places and only one item; Shift+F goes back. A list on the left of the large map groups the filters: places (by category) and one group per biome, each item under the biome where most of its pins are. A click on a row or a group header picks it, and the +/- button folds a group; `FilterPanel` turns it off. The minimap shows the same filter, with a legend under it.
 - `ResourcePins.ResourceApi.Query` returns the mod's pins near a point as JSON, for other mods.
 - A place no longer gets one more pin each time the world loads; the extra copies go when you are near it again.
 
