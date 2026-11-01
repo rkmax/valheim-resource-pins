@@ -20,6 +20,7 @@ internal static class Tracker
     private static readonly List<Sighting> _seen = new();
     private static readonly List<PlaceSighting> _places = new();
     private static readonly List<ChestSighting> _chests = new();
+    private static readonly HashSet<string> _indexed = new();
     private static PinRegistry _registry;
     private static bool _relabeled;
     private static string _path;
@@ -58,8 +59,8 @@ internal static class Tracker
         _registry.Log += Notices.Event;
         Notices.Mute();
         MapFilter.Reset();
-        _registry.Bind(MapPins.All(minimap).Select(p => ((object)p, MapPins.ToV3(p.m_pos), (int)p.m_type)));
-        Plugin.Log.LogInfo($"Registry {Path.GetFileName(_path)}: {_registry.Pins.Count} pins.");
+        _registry.Bind(_map, MapPins.All(minimap).Select(p => ((object)p, MapPins.ToV3(p.m_pos), (int)p.m_type)));
+        Plugin.Log.LogInfo($"Registry {Path.GetFileName(_path)}: {_registry.Pins.Count} pins{(_registry.Migrated ? ", migrated to format " + RegistryData.CurrentVersion : "")}.");
     }
 
     internal static void OnRemovedByHand(Minimap.PinData pin)
@@ -106,7 +107,7 @@ internal static class Tracker
         if (places != null)
             _registry.ObservePlaces(_map, _places, _chests, places.Icon);
         long now = ZNet.instance.GetTime().Ticks;
-        _registry.Prune(_map, MapPins.ToV3(pos), radius, Exists, Time.realtimeSinceStartup, now);
+        _registry.Prune(_map, MapPins.ToV3(pos), radius, Plugin.MergeRadius.Value, NodeAt, ChestAt(places), Time.realtimeSinceStartup, now);
         _registry.UpdateChecks(_map, now);
         PinSync.AfterScan(_registry, greet: true);
         Notices.Show();
@@ -138,6 +139,9 @@ internal static class Tracker
     {
         _zdos.Clear();
         _seen.Clear();
+        _indexed.Clear();
+        foreach (IndexEntry e in index.Values)
+            _indexed.Add(e.Resource.Item);
         long now = ZNet.instance.GetTime().Ticks;
         _places.Clear();
         _chests.Clear();
@@ -160,7 +164,6 @@ internal static class Tracker
                 : 0L;
             _seen.Add(new Sighting
             {
-                Node = Id(zdo),
                 Item = r.Item,
                 Label = e.Label,
                 Kind = r.Kind,
@@ -179,18 +182,18 @@ internal static class Tracker
     {
         if (prefab == PlaceIndex.ProxyPrefab)
         {
-            NodeId node = Id(zdo);
-            if (!places.Places.TryGetValue(zdo.GetInt(ZDOVars.s_location), out PlaceDef place) || _registry.Knows(node))
+            Vector3 at = zdo.GetPosition();
+            if (!places.Places.TryGetValue(zdo.GetInt(ZDOVars.s_location), out PlaceDef place) ||
+                _registry.KnowsPlace(place.Location.m_prefab.Name, MapPins.ToV3(at)))
                 return true;
             string label = PlaceIndex.Label(place, zdo);
             if (label != null)
                 _places.Add(new PlaceSighting
                 {
-                    Node = node,
                     Location = place.Location.m_prefab.Name,
                     Category = place.Category,
                     Label = label,
-                    Pos = MapPins.ToV3(zdo.GetPosition()),
+                    Pos = MapPins.ToV3(at),
                     Interior = place.Interior,
                     Radius = place.Location.m_exteriorRadius,
                 });
@@ -202,7 +205,6 @@ internal static class Tracker
         if (zdo.GetLong(ZDOVars.s_creator) == 0L)
             _chests.Add(new ChestSighting
             {
-                Node = Id(zdo),
                 Pos = MapPins.ToV3(zdo.GetPosition()),
                 Fill = stand
                     ? zdo.GetBool(ZDOVars.s_picked) ? ChestFill.Empty : ChestFill.Full
@@ -211,9 +213,16 @@ internal static class Tracker
         return true;
     }
 
-    private static NodeId Id(ZDO zdo) => new(zdo.m_uid.UserID, zdo.m_uid.ID);
+    /// <summary>
+    /// A node of the item at that position in this scan, which reads every indexed ZDO within the radius. An item the
+    /// index no longer covers (taken out of Items) is not seen at all, so its nodes count as there.
+    /// </summary>
+    private static bool NodeAt(string item, V3 pos) =>
+        !_indexed.Contains(item) || _seen.Any(s => s.Item == item && V3.DistanceXZ(s.Pos, pos) < PinRegistry.SameNodeDistance);
 
-    private static bool Exists(NodeId n) => ZDOMan.instance.GetZDO(new ZDOID(n.User, (uint)n.Id)) != null;
+    /// <summary>A world chest at that position in the sectors this scan read; every chest counts while places are not indexed.</summary>
+    private static Func<V3, bool> ChestAt(PlaceIndex places) =>
+        places == null ? _ => true : pos => _chests.Any(c => V3.Distance(c.Pos, pos) < PinRegistry.SameChestDistance);
 
     private static void Flush()
     {
@@ -221,24 +230,12 @@ internal static class Tracker
             return;
         try
         {
-            Save(_registry, _path);
+            RegistryJson.Save(_registry, _path);
         }
         catch (Exception e)
         {
             Plugin.Log.LogWarning($"Could not save {_path}: {e.Message}");
         }
-    }
-
-    /// <summary>Writes the registry file to a temporary file first, so a crash in the middle keeps the old one.</summary>
-    internal static void Save(PinRegistry registry, string path)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(path));
-        string tmp = path + ".tmp";
-        File.WriteAllText(tmp, RegistryJson.Write(registry.Export()));
-        if (File.Exists(path))
-            File.Delete(path);
-        File.Move(tmp, path);
-        registry.Dirty = false;
     }
 
     /// <summary>The character file (with its pins) was written: write the registry with it.</summary>

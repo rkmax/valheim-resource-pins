@@ -41,13 +41,13 @@ public class PinRegistryTests
     private readonly FakeMap _map = new();
     private readonly PinRegistry _reg = new(new RegistryData(), worldUid: 1);
 
-    private static Sighting Node(long id, float x, string item = "CopperOre") =>
-        new() { Node = new NodeId(1, id), Item = item, Label = "$item_" + item, Kind = MemberKind.Mined, Pos = new V3(x, 0, 0) };
+    private static Sighting Node(float x, string item = "CopperOre") =>
+        new() { Item = item, Label = "$item_" + item, Kind = MemberKind.Mined, Pos = new V3(x, 0, 0) };
 
-    private static Sighting Bush(long id, float x, bool picked = false, long pickedTime = 0) =>
+    private static Sighting Bush(float x, bool picked = false, long pickedTime = 0) =>
         new()
         {
-            Node = new NodeId(1, id), Item = "Raspberry", Kind = MemberKind.Regrows, RespawnMinutes = 300,
+            Item = "Raspberry", Kind = MemberKind.Regrows, RespawnMinutes = 300,
             Pos = new V3(x, 0, 0), Picked = picked, PickedTime = pickedTime,
         };
 
@@ -64,7 +64,7 @@ public class PinRegistryTests
     [Fact]
     public void Same_item_within_merge_radius_of_the_anchor_joins_its_pin()
     {
-        See(Node(1, 0), Node(2, 10));
+        See(Node(0), Node(10));
 
         Assert.Single(_map.Pins);
         Assert.Equal(2, _reg.Pins[0].Members.Count);
@@ -73,7 +73,7 @@ public class PinRegistryTests
     [Fact]
     public void Farther_node_or_other_item_gets_its_own_pin()
     {
-        See(Node(1, 0), Node(2, 13), Node(3, 5, "TinOre"));
+        See(Node(0), Node(13), Node(5, "TinOre"));
 
         Assert.Equal(3, _map.Pins.Count);
     }
@@ -81,7 +81,7 @@ public class PinRegistryTests
     [Fact]
     public void Distance_is_always_to_the_anchor_so_pins_do_not_chain()
     {
-        See(Node(1, 0), Node(2, 10), Node(3, 20));
+        See(Node(0), Node(10), Node(20));
 
         Assert.Equal(2, _map.Pins.Count);
         Assert.Equal(20f, _reg.Pins[1].Anchor.X);
@@ -90,8 +90,8 @@ public class PinRegistryTests
     [Fact]
     public void Seeing_the_same_node_again_adds_nothing()
     {
-        See(Node(1, 0));
-        See(Node(1, 0));
+        See(Node(0));
+        See(Node(0));
 
         Assert.Single(_map.Pins);
         Assert.Single(_reg.Pins[0].Members);
@@ -102,7 +102,7 @@ public class PinRegistryTests
     {
         _map.Add(new V3(0.5f, 0, 0), Icon, "my own pin");
 
-        See(Node(1, 0));
+        See(Node(0));
 
         Assert.Single(_map.Pins);
         Assert.Empty(_reg.Pins);
@@ -111,18 +111,18 @@ public class PinRegistryTests
     [Fact]
     public void Pin_is_removed_once_all_members_stay_gone()
     {
-        See(Node(1, 0), Node(2, 5));
-        var alive = new HashSet<long> { 2 };
+        See(Node(0), Node(5));
+        var alive = new HashSet<float> { 5 };
         V3 player = new(0, 0, 0);
 
-        _reg.Prune(_map, player, 40, n => alive.Contains(n.Id), 0f, 0);
-        _reg.Prune(_map, player, 40, n => alive.Contains(n.Id), PinRegistry.AbsenceSeconds, 0);
+        _reg.Prune(_map, player, 40, Merge, (_, p) => alive.Contains(p.X), _ => true, 0f, 0);
+        _reg.Prune(_map, player, 40, Merge, (_, p) => alive.Contains(p.X), _ => true, PinRegistry.AbsenceSeconds, 0);
         Assert.Single(_reg.Pins[0].Members);
         Assert.Single(_map.Pins);
 
         alive.Clear();
-        _reg.Prune(_map, player, 40, _ => false, 20f, 0);
-        _reg.Prune(_map, player, 40, _ => false, 20f + PinRegistry.AbsenceSeconds, 0);
+        _reg.Prune(_map, player, 40, Merge, (_, _) => false, _ => true, 20f, 0);
+        _reg.Prune(_map, player, 40, Merge, (_, _) => false, _ => true, 20f + PinRegistry.AbsenceSeconds, 0);
         Assert.Empty(_map.Pins);
         Assert.Empty(_reg.Pins);
     }
@@ -130,13 +130,13 @@ public class PinRegistryTests
     [Fact]
     public void Missing_zdo_does_not_remove_a_pin_out_of_range_or_before_the_area_arrives()
     {
-        See(Node(1, 0));
+        See(Node(0));
 
-        _reg.Prune(_map, new V3(100, 0, 0), 40, _ => false, 0f, 0);
-        _reg.Prune(_map, new V3(100, 0, 0), 40, _ => false, 60f, 0);
-        _reg.Prune(_map, new V3(0, 0, 0), 40, _ => false, 61f, 0);
-        _reg.Prune(_map, new V3(0, 0, 0), 40, _ => true, 62f, 0);
-        _reg.Prune(_map, new V3(0, 0, 0), 40, _ => false, 63f, 0);
+        _reg.Prune(_map, new V3(100, 0, 0), 40, Merge, (_, _) => false, _ => true, 0f, 0);
+        _reg.Prune(_map, new V3(100, 0, 0), 40, Merge, (_, _) => false, _ => true, 60f, 0);
+        _reg.Prune(_map, new V3(0, 0, 0), 40, Merge, (_, _) => false, _ => true, 61f, 0);
+        _reg.Prune(_map, new V3(0, 0, 0), 40, Merge, (_, _) => true, _ => true, 62f, 0);
+        _reg.Prune(_map, new V3(0, 0, 0), 40, Merge, (_, _) => false, _ => true, 63f, 0);
 
         Assert.Single(_map.Pins);
     }
@@ -144,44 +144,42 @@ public class PinRegistryTests
     [Fact]
     public void Hand_deleted_pin_never_comes_back()
     {
-        See(Node(1, 0), Node(2, 5));
+        See(Node(0), Node(5));
         object pin = _reg.Pins[0].Handle;
         _map.Remove(pin);
 
         _reg.OnRemovedByHand(pin);
-        See(Node(1, 0), Node(2, 5));
+        See(Node(0), Node(5), Node(11));
 
         Assert.Empty(_map.Pins);
-        Assert.True(_reg.IsIgnored(new NodeId(1, 2)));
     }
 
     [Fact]
     public void Entry_whose_pin_is_missing_at_load_is_pinned_again_and_others_bind_by_position()
     {
-        See(Node(1, 0), Node(2, 50));
+        See(Node(0), Node(50));
         var saved = new PinRegistry(_reg.Export(), worldUid: 1);
         var kept = new object();
         var map = new FakeMap();
 
-        saved.Bind(new[] { (kept, new V3(50.4f, 9, 0), Icon) });
-        saved.Observe(map, new[] { Node(1, 0) }, Icon, Merge);
+        saved.Bind(map, new[] { (kept, new V3(50.4f, 9, 0), Icon) });
+        saved.Observe(map, new[] { Node(0) }, Icon, Merge);
 
         Assert.Same(kept, saved.Pins.Single(p => p.Handle == kept).Handle);
-        Assert.False(saved.IsIgnored(new NodeId(1, 1)));
         Assert.Single(map.Pins);
     }
 
     [Fact]
     public void Registry_survives_the_file_round_trip()
     {
-        See(Node(1, 0), Node(2, 50));
-        _reg.Pins[0].Members[0].Node = new NodeId(-3074457345618258602L, 4294967295L);
+        See(Node(-1716.25f), Node(50));
         _reg.OnRemovedByHand(_map.Pins[1]);
 
         RegistryData back = RegistryJson.Read(RegistryJson.Write(_reg.Export()));
 
-        Assert.Equal(new NodeId(-3074457345618258602L, 4294967295L), back.Pins.Single().Members.Single().Node);
-        Assert.Equal(new[] { new NodeId(1, 2) }, back.Ignored);
+        Assert.Equal(RegistryData.CurrentVersion, back.Version);
+        Assert.Equal(-1716.25f, back.Pins.Single().Members.Single().Pos.X);
+        Assert.Equal(new[] { new Spot("CopperOre", new V3(50, 0, 0)) }, back.Ignored);
         Assert.Null(back.Pins.Single().Handle);
     }
 
@@ -199,10 +197,10 @@ public class PinRegistryTests
     [Fact]
     public void Own_pin_left_by_an_unsaved_registry_is_adopted_not_duplicated()
     {
-        See(Node(1, 0));
+        See(Node(0));
         var fresh = new PinRegistry(new RegistryData(), worldUid: 1);
 
-        fresh.Observe(_map, new[] { Node(1, 0) }, Icon, Merge);
+        fresh.Observe(_map, new[] { Node(0) }, Icon, Merge);
 
         Assert.Single(_map.Pins);
         Assert.Same(_map.Pins[0], fresh.Pins.Single().Handle);
@@ -213,7 +211,7 @@ public class PinRegistryTests
     {
         var root = new Sighting
         {
-            Node = new NodeId(1, 9), Item = "Sap", Kind = MemberKind.Regrows, Pos = new V3(0, 0, 0),
+            Item = "Sap", Kind = MemberKind.Regrows, Pos = new V3(0, 0, 0),
             Picked = true, ReadyAt = 2000 * Minute,
         };
 
@@ -227,7 +225,7 @@ public class PinRegistryTests
     [Fact]
     public void Picked_bush_gets_the_x()
     {
-        Scan(1000 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute));
+        Scan(1000 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute));
 
         Assert.True(X);
     }
@@ -235,7 +233,7 @@ public class PinRegistryTests
     [Fact]
     public void X_clears_when_world_time_passes_ready_without_a_scan()
     {
-        Scan(1000 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute));
+        Scan(1000 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute));
 
         _reg.UpdateChecks(_map, 1301 * Minute);
 
@@ -245,7 +243,7 @@ public class PinRegistryTests
     [Fact]
     public void Stale_picked_flag_after_ready_counts_as_ready()
     {
-        Scan(1301 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute));
+        Scan(1301 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute));
 
         Assert.False(X);
     }
@@ -253,7 +251,7 @@ public class PinRegistryTests
     [Fact]
     public void Picked_without_a_picked_time_sets_no_x()
     {
-        Scan(1000 * Minute, Bush(1, 0, picked: true, pickedTime: 0));
+        Scan(1000 * Minute, Bush(0, picked: true, pickedTime: 0));
 
         Assert.False(X);
         Assert.True(_reg.Pins[0].Members[0].Unknown);
@@ -262,7 +260,7 @@ public class PinRegistryTests
     [Fact]
     public void Cluster_with_one_ready_bush_has_no_x()
     {
-        Scan(1000 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute), Bush(2, 3));
+        Scan(1000 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute), Bush(3));
 
         Assert.False(X);
     }
@@ -270,7 +268,7 @@ public class PinRegistryTests
     [Fact]
     public void Mined_members_never_cause_an_x()
     {
-        Scan(1000 * Minute, Node(1, 0, "Raspberry"));
+        Scan(1000 * Minute, Node(0, "Raspberry"));
 
         Assert.False(X);
         Assert.False(PinRegistry.Regrowing(_reg.Pins[0], 1000 * Minute));
@@ -279,21 +277,21 @@ public class PinRegistryTests
     [Fact]
     public void Hand_toggle_survives_until_the_next_transition()
     {
-        Scan(1000 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute));
+        Scan(1000 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute));
         _map.Pins[0].Checked = false; // The player clears the X by hand.
 
-        Scan(1100 * Minute, Bush(1, 0, picked: true, pickedTime: 1000 * Minute));
+        Scan(1100 * Minute, Bush(0, picked: true, pickedTime: 1000 * Minute));
         Assert.False(X);
 
-        Scan(1400 * Minute, Bush(1, 0, picked: false));
-        Scan(1500 * Minute, Bush(1, 0, picked: true, pickedTime: 1500 * Minute));
+        Scan(1400 * Minute, Bush(0, picked: false));
+        Scan(1500 * Minute, Bush(0, picked: true, pickedTime: 1500 * Minute));
         Assert.True(X);
     }
 
     [Fact]
     public void Picked_oneshot_leaves_its_pin()
     {
-        var mushroom = new Sighting { Node = new NodeId(1, 1), Item = "Mushroom", Kind = MemberKind.Oneshot, Pos = new V3(0, 0, 0) };
+        var mushroom = new Sighting { Item = "Mushroom", Kind = MemberKind.Oneshot, Pos = new V3(0, 0, 0) };
         See(mushroom);
 
         mushroom.Picked = true;

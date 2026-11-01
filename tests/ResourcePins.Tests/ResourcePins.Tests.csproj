@@ -11,6 +11,7 @@
     <Compile Include="../../src/ResourcePins/PinFilter.cs" Link="PinFilter.cs" />
     <Compile Include="../../src/ResourcePins/ResourceQuery.cs" Link="ResourceQuery.cs" />
     <Compile Include="../../src/ResourcePins/RegistryJson.cs" Link="RegistryJson.cs" />
+    <Compile Include="../../src/ResourcePins/SyncWire.cs" Link="SyncWire.cs" />
     <Compile Include="../../src/ResourcePins/ExploredMask.cs" Link="ExploredMask.cs" />
   </ItemGroup>
   <ItemGroup>

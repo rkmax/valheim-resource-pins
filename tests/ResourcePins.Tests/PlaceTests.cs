@@ -41,15 +41,18 @@ public class PlaceTests
 
     private static readonly V3 Entrance = new(10, 30, 10);
 
-    private static PlaceSighting Crypt(long id = 100, V3? pos = null) =>
+    private static PlaceSighting Crypt(V3? pos = null) =>
         new()
         {
-            Node = new NodeId(1, id), Location = "Crypt2", Category = PlaceCatalog.Dungeons, Label = "$location_forestcrypt",
+            Location = "Crypt2", Category = PlaceCatalog.Dungeons, Label = "$location_forestcrypt",
             Pos = pos ?? Entrance, Interior = true, Radius = 12,
         };
 
-    private static ChestSighting Chest(long id, ChestFill fill) =>
-        new() { Node = new NodeId(1, id), Pos = new V3(5, 5030, -8), Fill = fill };
+    /// <summary>Chest number <paramref name="n"/> of the crypt, 2 m from the next one.</summary>
+    private static ChestSighting Chest(int n, ChestFill fill) =>
+        new() { Pos = ChestPos(n), Fill = fill };
+
+    private static V3 ChestPos(int n) => new(5 + 2 * n, 5030, -8);
 
     private void Scan(PlaceSighting[] places, params ChestSighting[] chests)
     {
@@ -173,10 +176,10 @@ public class PlaceTests
     [Fact]
     public void Boss_altar_never_gets_the_x_from_a_nearby_chest()
     {
-        PlaceSighting altar = Crypt(200, new V3(500, 30, 500));
+        PlaceSighting altar = Crypt(new V3(500, 30, 500));
         altar.Category = "Bosses";
         altar.Interior = false;
-        Scan(new[] { altar }, new ChestSighting { Node = new NodeId(1, 9), Pos = new V3(505, 30, 500), Fill = ChestFill.Empty });
+        Scan(new[] { altar }, new ChestSighting { Pos = new V3(505, 30, 500), Fill = ChestFill.Empty });
 
         Assert.False(X);
         Assert.Empty(_reg.Pins.Single().Chests);
@@ -202,8 +205,8 @@ public class PlaceTests
         Scan(Chest(1, ChestFill.Empty));
         V3 player = Entrance;
 
-        _reg.Prune(_map, player, 40, _ => false, 0f, 0);
-        _reg.Prune(_map, player, 40, _ => false, PinRegistry.AbsenceSeconds, 0);
+        _reg.Prune(_map, player, 40, 12, (_, _) => false, _ => false, 0f, 0);
+        _reg.Prune(_map, player, 40, 12, (_, _) => false, _ => false, PinRegistry.AbsenceSeconds, 0);
 
         Assert.Single(_map.Pins);
         Assert.Single(_reg.Pins);
@@ -213,10 +216,8 @@ public class PlaceTests
     public void Destroyed_chest_leaves_the_known_set_but_not_the_pin()
     {
         Scan(Chest(1, ChestFill.Empty), Chest(2, ChestFill.Full));
-        var proxy = new NodeId(1, 100);
-
-        _reg.Prune(_map, Entrance, 40, n => n.Equals(proxy) || n.Id == 1, 0f, 0);
-        _reg.Prune(_map, Entrance, 40, n => n.Equals(proxy) || n.Id == 1, PinRegistry.AbsenceSeconds, 0);
+        _reg.Prune(_map, Entrance, 40, 12, (_, _) => true, p => p.Equals(ChestPos(1)), 0f, 0);
+        _reg.Prune(_map, Entrance, 40, 12, (_, _) => true, p => p.Equals(ChestPos(1)), PinRegistry.AbsenceSeconds, 0);
         _reg.UpdateChecks(_map, 0);
 
         Assert.True(X);
@@ -225,11 +226,11 @@ public class PlaceTests
     [Fact]
     public void Egg_pin_is_removed_when_its_zdo_is_gone()
     {
-        var egg = new Sighting { Node = new NodeId(1, 7), Item = "DragonEgg", Kind = MemberKind.Oneshot, Pos = new V3(0, 0, 0) };
+        var egg = new Sighting { Item = "DragonEgg", Kind = MemberKind.Oneshot, Pos = new V3(0, 0, 0) };
         _reg.Observe(_map, new[] { egg }, ResourceIcon, 12);
 
-        _reg.Prune(_map, new V3(0, 0, 0), 40, _ => false, 0f, 0);
-        _reg.Prune(_map, new V3(0, 0, 0), 40, _ => false, PinRegistry.AbsenceSeconds, 0);
+        _reg.Prune(_map, new V3(0, 0, 0), 40, 12, (_, _) => false, _ => false, 0f, 0);
+        _reg.Prune(_map, new V3(0, 0, 0), 40, 12, (_, _) => false, _ => false, PinRegistry.AbsenceSeconds, 0);
 
         Assert.Empty(_map.Pins);
         Assert.Empty(_reg.Pins);
@@ -249,7 +250,7 @@ public class PlaceTests
     [Fact]
     public void The_mods_own_resource_pin_nearby_does_not_block_a_place()
     {
-        _reg.Observe(_map, new[] { new Sighting { Node = new NodeId(1, 1), Item = "Raspberry", Kind = MemberKind.Regrows, Pos = new V3(12, 0, 10) } },
+        _reg.Observe(_map, new[] { new Sighting { Item = "Raspberry", Kind = MemberKind.Regrows, Pos = new V3(12, 0, 10) } },
             ResourceIcon, 12);
 
         Scan(new[] { Crypt() });
@@ -273,30 +274,33 @@ public class PlaceTests
     }
 
     [Fact]
-    public void Place_seen_under_a_new_node_after_a_world_reload_keeps_one_pin_and_drops_older_copies()
+    public void Copies_of_a_place_in_a_format_2_file_become_one_pin_with_the_chests_of_all()
     {
-        // Files written before this fix: one copy of the place per world load, each with its own map pin.
-        var data = new RegistryData();
+        // Format 2 added a copy of the place on each world load, each with its own map pin and a copy of the same chests.
+        var data = new RegistryData { WorldUid = 1 };
         for (int i = 0; i < 3; i++)
         {
             data.Pins.Add(new PinRecord
             {
                 Item = "Crypt2", Type = PlaceIcon, Anchor = Entrance, Category = PlaceCatalog.Dungeons,
                 Label = "$location_forestcrypt", Interior = true, Radius = 12,
-                Members = { new Member { Node = new NodeId(1, 100 + i), Kind = MemberKind.Place } },
+                Members = { new Member { Kind = MemberKind.Place } },
+                Chests = { new ChestState { Pos = ChestPos(1), Empty = i == 2 }, new ChestState { Pos = ChestPos(2), Empty = i == 0 } },
             });
             _map.Add(Entrance, PlaceIcon, "$location_forestcrypt");
         }
+        _map.Add(new V3(10.5f, 30, 10), 9, "my own pin");
         var reg = new PinRegistry(data, worldUid: 1);
-        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+        reg.Bind(_map, _map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
 
-        reg.ObservePlaces(_map, new[] { Crypt(id: 500) }, new ChestSighting[0], PlaceIcon);
-        reg.ObservePlaces(_map, new[] { Crypt(id: 600) }, new ChestSighting[0], PlaceIcon);
+        reg.ObservePlaces(_map, new[] { Crypt() }, new ChestSighting[0], PlaceIcon);
+        reg.UpdateChecks(_map, 0);
 
-        Assert.Single(_map.Pins);
-        Assert.Single(reg.Pins);
-        Assert.Same(_map.Pins[0], reg.Pins[0].Handle);
-        Assert.True(reg.Knows(new NodeId(1, 600)));
+        Assert.Equal(2, _map.Pins.Count);
+        PinRecord place = Assert.Single(reg.Pins);
+        Assert.Same(_map.Pins[0], place.Handle);
+        Assert.Equal(new[] { ChestPos(1), ChestPos(2) }, place.Chests.Select(c => c.Pos));
+        Assert.True(_map.Pins[0].Checked);
     }
 
     [Fact]
@@ -304,19 +308,19 @@ public class PlaceTests
     {
         string generic = PlaceCatalog.Fallback(PlaceCatalog.Dungeons);
         var data = new RegistryData();
-        foreach ((long id, string label, V3 pos) in new[] { (1L, generic, Entrance), (2L, "My base", new V3(500, 30, 500)) })
+        foreach ((string label, V3 pos) in new[] { (generic, Entrance), ("My base", new V3(500, 30, 500)) })
         {
             data.Pins.Add(new PinRecord
             {
                 Item = "Crypt2", Type = PlaceIcon, Anchor = pos, Category = PlaceCatalog.Dungeons, Label = label,
-                Interior = true, Radius = 12, Members = { new Member { Node = new NodeId(1, id), Kind = MemberKind.Place } },
+                Interior = true, Radius = 12, Members = { new Member { Kind = MemberKind.Place } },
             });
             _map.Add(pos, PlaceIcon, label);
         }
         var reg = new PinRegistry(data, worldUid: 1);
-        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+        reg.Bind(_map, _map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
 
-        reg.ObservePlaces(_map, new[] { Crypt(id: 10), Crypt(id: 20, pos: new V3(500, 30, 500)) }, new ChestSighting[0], PlaceIcon);
+        reg.ObservePlaces(_map, new[] { Crypt(), Crypt(new V3(500, 30, 500)) }, new ChestSighting[0], PlaceIcon);
 
         Assert.Equal("$location_forestcrypt", _map.Pins[0].Name);
         Assert.Equal("$location_forestcrypt", reg.Pins[0].Label);
@@ -333,12 +337,12 @@ public class PlaceTests
             data.Pins.Add(new PinRecord
             {
                 Item = item, Type = PlaceIcon, Anchor = new V3(data.Pins.Count * 100, 30, 0), Category = PlaceCatalog.Dungeons,
-                Label = label, Members = { new Member { Node = new NodeId(1, data.Pins.Count), Kind = MemberKind.Place } },
+                Label = label, Members = { new Member { Kind = MemberKind.Place } },
             });
             _map.Add(data.Pins[^1].Anchor, PlaceIcon, label);
         }
         var reg = new PinRegistry(data, worldUid: 1);
-        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+        reg.Bind(_map, _map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
 
         var asked = new List<string>();
         reg.RelabelPlaces(_map, item =>

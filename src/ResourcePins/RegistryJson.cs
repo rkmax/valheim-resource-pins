@@ -1,3 +1,4 @@
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -15,6 +16,25 @@ public static class RegistryJson
     };
 
     public static string Write(RegistryData data) => JsonConvert.SerializeObject(data, Formatting.Indented, Settings);
+
+    /// <summary>
+    /// Writes the registry file to a temporary file first, so a crash in the middle keeps the old one. A registry
+    /// migrated from format 2 first keeps the old file next to it as <c>.v2.bak</c>, once.
+    /// </summary>
+    public static void Save(PinRegistry registry, string path)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
+        string backup = path + ".v2.bak";
+        if (registry.Migrated && File.Exists(path) && !File.Exists(backup))
+            File.Copy(path, backup);
+        string tmp = path + ".tmp";
+        File.WriteAllText(tmp, Write(registry.Export()));
+        if (File.Exists(path))
+            File.Delete(path);
+        File.Move(tmp, path);
+        registry.Dirty = false;
+        registry.Migrated = false;
+    }
 
     /// <summary>
     /// Reads a registry file. Serializable types are created without running their constructors, so lists

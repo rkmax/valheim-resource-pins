@@ -42,7 +42,7 @@ internal static class ServerStore
             return _registry;
         _path = path;
         _registry = new PinRegistry(Tracker.Load(path), world.m_uid) { Log = PinLog.Event };
-        Plugin.Log.LogInfo($"Server store {Path.GetFileName(path)}: {_registry.Pins.Count} pins.");
+        Plugin.Log.LogInfo($"Server store {Path.GetFileName(path)}: {_registry.Pins.Count} pins{(_registry.Migrated ? ", migrated to format " + RegistryData.CurrentVersion : "")}.");
         return _registry;
     }
 
@@ -56,7 +56,7 @@ internal static class ServerStore
                 return;
             try
             {
-                Tracker.Save(_registry, _path);
+                RegistryJson.Save(_registry, _path);
             }
             catch (Exception e)
             {

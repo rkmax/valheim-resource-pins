@@ -21,4 +21,10 @@ public struct V3
         float dx = a.X - b.X, dz = a.Z - b.Z;
         return (float)Math.Sqrt(dx * dx + dz * dz);
     }
+
+    public static float Distance(V3 a, V3 b)
+    {
+        float dx = a.X - b.X, dy = a.Y - b.Y, dz = a.Z - b.Z;
+        return (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
+    }
 }
