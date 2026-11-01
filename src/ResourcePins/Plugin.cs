@@ -11,7 +11,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "rkmax.resourcepins";
     public const string Name = "ResourcePins";
-    public const string Version = "0.2.1";
+    public const string Version = "0.3.0";
 
     internal static ManualLogSource Log;
 
@@ -44,9 +44,10 @@ public class Plugin : BaseUnityPlugin
         Enabled = Config.Bind("General", "Enabled", true, "Pins resource nodes around you on the map.");
         Items = Config.Bind("General", "Items",
             "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
-            "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap",
+            "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
+            "ProustitePowder,Vineberry",
             "Item prefab names (case-sensitive) whose nodes get a pin. Unknown names are logged and ignored.");
-        Blocklist = Config.Bind("General", "Blocklist", "dvergr*,prop_*,*trashpile*,barrell*,morgenhole*",
+        Blocklist = Config.Bind("General", "Blocklist", "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*",
             "Prefab names that never get a pin, comma-separated; * matches anything, case-insensitive.");
 
         ScanRadius = Config.Bind("Scan", "ScanRadius", 40f,
@@ -65,18 +66,18 @@ public class Plugin : BaseUnityPlugin
         Dungeons = Config.Bind("Places", "Dungeons",
             "Crypt2,Crypt3,Crypt4,SunkenCrypt4,HalfBurried_ForestCrypt,TrollCave02,MountainCave02,BearCave," +
             "Mistlands_DvergrTownEntrance1,Mistlands_DvergrTownEntrance2,Mistlands_DvergrBossEntrance1,MorgenHole1,MorgenHole2," +
-            "MorgenHole3,TheHole01,TheDarkestHole,Hildir_crypt,Hildir_cave,Hildir_plainsfortress,CharredFortress",
+            "MorgenHole3,TheHole01,TheDarkestHole,Hildir_crypt,Hildir_cave,Hildir_plainsfortress,CharredFortress,MorkBorg",
             places + " Their loot chests are the ones in the interior.");
         Camps = Config.Bind("Places", "Camps",
             "GoblinCamp2,GoblinCamp2_1,Greydwarf_camp1,LumberCamp,Mistlands_Harbour1,Mistlands_Excavation1,Mistlands_Excavation2," +
-            "Mistlands_Excavation3,Mistlands_Lighthouse1_new",
+            "Mistlands_Excavation3,Mistlands_Lighthouse1_new,Mistlands_RockSpire1,Mistlands_GuardTower1_ruined_new,Mistlands_GuardTower3_ruined_new",
             places + " Their loot chests are the ones within the location's radius.");
         Spawners = Config.Bind("Places", "Spawners", "FireHole",
             places + " Creature spawners with no interior and no loot, named after what they spawn. " +
             "A location listed here and in another list counts as a spawner.");
         Bosses = Config.Bind("Places", "Bosses", "Eikthyrnir,GDKing,Bonemass,Dragonqueen,GoblinKing,FaderLocation", places);
         Traders = Config.Bind("Places", "Traders", "Vendor_BlackForest,Hildir_camp,BogWitch_Camp", places);
-        LootStands = Config.Bind("Places", "LootStands", "Pickable_BlackCoreStand",
+        LootStands = Config.Bind("Places", "LootStands", "Pickable_BlackCoreStand,Pickable_MoltenCoreStand,Pickable_SurtlingCoreStand",
             "Pickable prefab names (case-sensitive, comma-separated) that count as a place's loot like its chests: " +
             "the place gets the X once they are picked too. Unknown names are logged and ignored.");
 

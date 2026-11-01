@@ -19,7 +19,7 @@ Download `ResourcePins-<version>.zip` from [Releases](../../releases), then:
 - Nodes of the same item within 12 m of a pin join that pin instead of adding another one. The distance is always to the first node of the pin, so a long vein don't turn into one huge pin.
 - When you come back near a pin and all its nodes are gone (mined out, picked for good), the pin is removed.
 - A berry pin gets the **X** while all the bushes are picked and regrowing, and the X goes away when they are ready again, even if you are far. If you toggle the X yourself, the mod leaves it alone until the next pick or regrow.
-- If you delete one of its pins, the mod remembers those nodes and never pins them again.
+- If you delete one of its pins, the mod stops pinning that item around the pin's spot.
 - New and removed pins show in the game's message feed (top left) with the item's icon, grouped per scan ("Pin: Copper ore x3"). Pins you already had when you log in are not announced.
 
 ### Places
@@ -44,7 +44,7 @@ File: `BepInEx/config/rkmax.resourcepins.cfg`. Default value in parentheses.
 
 - `Enabled` (true): adds and updates pins.
 - `Items`: item prefab names to pin (case-sensitive). Unknown names go to the log and are ignored. `Sap` pins the ancient roots for the Sap Extractor. An old config file keeps its old list, add new names by hand.
-- `Blocklist` (`dvergr*,prop_*,*trashpile*,barrell*,morgenhole*`): prefab names that never get a pin, `*` matches anything.
+- `Blocklist` (`dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*`): prefab names that never get a pin, `*` matches anything.
 
 ### Scan
 
@@ -93,9 +93,9 @@ Messages in the top-left feed.
 <details>
 <summary>Default lists</summary>
 
-- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap`
-- `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress`
-- `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new`
+- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap, Tar, Fiddleheadfern, MushroomSmokePuff, QueenBee, SulfurStone, ProustitePowder, Vineberry`
+- `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress, MorkBorg`
+- `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new, Mistlands_RockSpire1, Mistlands_GuardTower1_ruined_new, Mistlands_GuardTower3_ruined_new`
 - `Spawners`: `FireHole`
 - `Bosses`: `Eikthyrnir, GDKing, Bonemass, Dragonqueen, GoblinKing, FaderLocation`
 - `Traders`: `Vendor_BlackForest, Hildir_camp, BogWitch_Camp`
