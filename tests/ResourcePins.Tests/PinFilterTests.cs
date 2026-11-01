@@ -8,18 +8,19 @@ public class PinFilterTests
     private static PinRecord Resource(string item) => new() { Item = item };
     private static PinRecord Place(string category = "Dungeons") => new() { Item = "Crypt2", Category = category };
     private static PinRecord At(string item, string biome) => new() { Item = item, Label = biome };
+    private static readonly Dictionary<string, string> NoGroups = new();
     private static Dictionary<string, string> Groups(params PinRecord[] pins) => PinFilter.ItemBiomes(pins, p => p.Label);
 
     [Fact]
     public void Filter_shows_only_the_chosen_kind()
     {
-        Assert.False(PinFilter.Hidden(Resource("SilverOre"), ""));
-        Assert.False(PinFilter.Hidden(Place(), ""));
-        Assert.False(PinFilter.Hidden(Resource("SilverOre"), "SilverOre"));
-        Assert.True(PinFilter.Hidden(Resource("CopperOre"), "SilverOre"));
-        Assert.True(PinFilter.Hidden(Place(), "SilverOre"));
-        Assert.False(PinFilter.Hidden(Place(), PinFilter.Places));
-        Assert.True(PinFilter.Hidden(Resource("SilverOre"), PinFilter.Places));
+        Assert.False(PinFilter.Hidden(Resource("SilverOre"), "", NoGroups));
+        Assert.False(PinFilter.Hidden(Place(), "", NoGroups));
+        Assert.False(PinFilter.Hidden(Resource("SilverOre"), "SilverOre", NoGroups));
+        Assert.True(PinFilter.Hidden(Resource("CopperOre"), "SilverOre", NoGroups));
+        Assert.True(PinFilter.Hidden(Place(), "SilverOre", NoGroups));
+        Assert.False(PinFilter.Hidden(Place(), PinFilter.Places, NoGroups));
+        Assert.True(PinFilter.Hidden(Resource("SilverOre"), PinFilter.Places, NoGroups));
     }
 
     [Fact]
@@ -42,6 +43,15 @@ public class PinFilterTests
         Assert.Equal(new[] { "Camps" }, pins.Where(p => !PinFilter.Hidden(p, PinFilter.Category("Camps"), groups)).Select(p => p.Category));
         Assert.Equal(2, PinFilter.Count(pins, PinFilter.Places, groups));
         Assert.Equal(1, PinFilter.Count(pins, PinFilter.Biome("Meadows"), groups));
+    }
+
+    [Fact]
+    public void A_biome_header_counts_the_pins_of_its_items()
+    {
+        PinRecord[] pins = { At("Flint", "Meadows"), At("Flint", "Meadows"), At("Amber", "Meadows"), At("TinOre", "Swamp"), Place() };
+
+        Assert.Equal(3, PinFilter.Count(pins, PinFilter.Biome("Meadows"), Groups(pins)));
+        Assert.Equal(1, PinFilter.Count(pins, PinFilter.Biome("Swamp"), Groups(pins)));
     }
 
     [Fact]

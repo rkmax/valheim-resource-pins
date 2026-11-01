@@ -138,7 +138,7 @@ internal static class FilterPanel
             row.Key = key;
             row.Rect.anchoredPosition = new Vector2(0f, -i * RowHeight);
             row.Name.text = MapFilter.OptionName(registry, key);
-            row.Count.text = PinFilter.Count(registry.Pins, key).ToString();
+            row.Count.text = PinFilter.Count(registry.Pins, key, MapFilter.ItemBiomes(registry)).ToString();
             row.Icon.sprite = Icon(key);
             bool header = PinFilter.IsHeader(key);
             row.FoldButton.gameObject.SetActive(header);

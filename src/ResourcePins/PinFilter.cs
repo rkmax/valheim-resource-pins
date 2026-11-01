@@ -59,7 +59,7 @@ public static class PinFilter
         return result;
     }
 
-    public static bool Hidden(PinRecord pin, string filter, IReadOnlyDictionary<string, string> itemBiomes = null)
+    public static bool Hidden(PinRecord pin, string filter, IReadOnlyDictionary<string, string> itemBiomes)
     {
         if (string.IsNullOrEmpty(filter))
             return false;
@@ -68,7 +68,7 @@ public static class PinFilter
         if (filter.StartsWith(CategoryPrefix))
             return !pin.IsPlace || pin.Category != GroupName(filter);
         if (filter.StartsWith(BiomePrefix))
-            return pin.IsPlace || itemBiomes == null || !itemBiomes.TryGetValue(pin.Item, out string biome) || biome != GroupName(filter);
+            return pin.IsPlace || !itemBiomes.TryGetValue(pin.Item, out string biome) || biome != GroupName(filter);
         return pin.IsPlace || pin.Item != filter;
     }
 
@@ -106,7 +106,7 @@ public static class PinFilter
     }
 
     /// <summary>How many of the mod's pins the filter shows (all of them for "").</summary>
-    public static int Count(IEnumerable<PinRecord> pins, string filter, IReadOnlyDictionary<string, string> itemBiomes = null) =>
+    public static int Count(IEnumerable<PinRecord> pins, string filter, IReadOnlyDictionary<string, string> itemBiomes) =>
         pins.Count(p => !Hidden(p, filter, itemBiomes));
 
     /// <summary>
