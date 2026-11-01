@@ -83,4 +83,36 @@ internal sealed class MapPins : IPinMap
     {
         private static void Postfix(Minimap __instance) => Tracker.OnMapLoaded(__instance);
     }
+
+    /// <summary>
+    /// A cartography table must not receive the mod's pins (players with the mod get them through PinSync).
+    /// GetSharedMapData counts and writes whatever m_pins holds, so it runs against a copy without them.
+    /// </summary>
+    [HarmonyPatch(typeof(Minimap), nameof(Minimap.GetSharedMapData))]
+    private static class GetSharedMapData
+    {
+        /// <summary>The real m_pins list while the call runs on the filtered copy; the list itself is never changed.</summary>
+        private static List<Minimap.PinData> _real;
+
+        private static void Prefix(Minimap __instance)
+        {
+            _real = null;
+            PinRegistry registry = Tracker.Registry;
+            if (registry == null)
+                return;
+            var own = new HashSet<object>(registry.Pins.Select(p => p.Handle).Where(h => h != null));
+            ref List<Minimap.PinData> pins = ref All(__instance);
+            _real = pins;
+            pins = _real.Where(p => !own.Contains(p)).ToList();
+        }
+
+        /// <summary>Runs on exceptions too, so m_pins is always the real list again.</summary>
+        private static void Finalizer(Minimap __instance)
+        {
+            if (_real == null)
+                return;
+            All(__instance) = _real;
+            _real = null;
+        }
+    }
 }
