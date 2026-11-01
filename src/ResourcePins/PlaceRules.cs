@@ -20,6 +20,7 @@ public enum ChestFill
 public sealed class PlaceCatalog
 {
     public const string Dungeons = "Dungeons";
+    public const string Spawners = "Spawners";
 
     /// <summary>Interiors sit 5000 m above the entrance (Location.Awake); nothing outdoors is this high.</summary>
     public const float InteriorMinY = 4000f;
@@ -57,10 +58,35 @@ public sealed class PlaceCatalog
     {
         Dungeons => "Dungeon",
         "Camps" => "Camp",
+        Spawners => "Spawner",
         "Bosses" => "Boss altar",
         "Traders" => "Trader",
         _ => category,
     };
+
+    /// <summary>
+    /// Pin name for a location the game gives no name, from the creature it spawns; null for a category that
+    /// keeps its fallback (a dungeon is a dungeon whatever lives in it).
+    /// </summary>
+    public static string CreatureName(string category, string creature) => creature == null ? null : category switch
+    {
+        "Camps" => $"{creature} camp",
+        Spawners => $"{creature} spawner",
+        _ => null,
+    };
+
+    /// <summary>The name with the most weight (first one on a tie), ignoring entries with no name or weight; null if none.</summary>
+    public static string Dominant(IEnumerable<(string Name, float Weight)> found)
+    {
+        var totals = new Dictionary<string, float>();
+        foreach ((string name, float weight) in found.Where(f => f.Name != null && f.Weight > 0))
+            totals[name] = totals.TryGetValue(name, out float t) ? t + weight : weight;
+        string best = null;
+        foreach (KeyValuePair<string, float> p in totals)
+            if (best == null || p.Value > totals[best])
+                best = p.Key;
+        return best;
+    }
 
     /// <summary>
     /// Reads Container's s_items blob (Inventory.Save: int version, then ushort item count from version 108,

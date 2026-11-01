@@ -75,6 +75,28 @@ public class PlaceTests
     }
 
     [Fact]
+    public void Unnamed_camp_and_spawner_are_named_after_their_main_creature_and_dungeons_keep_theirs()
+    {
+        var found = new[] { ("Dvergr mage", 3f), ("Dvergr", 2f), ("Dvergr mage", 1f), (null, 9f) };
+
+        Assert.Equal("Dvergr mage", PlaceCatalog.Dominant(found));
+        Assert.Equal("Dvergr mage camp", PlaceCatalog.CreatureName("Camps", "Dvergr mage"));
+        Assert.Equal("Surtling spawner", PlaceCatalog.CreatureName(PlaceCatalog.Spawners, "Surtling"));
+        Assert.Null(PlaceCatalog.CreatureName(PlaceCatalog.Dungeons, "Skeleton"));
+        Assert.Null(PlaceCatalog.CreatureName("Camps", PlaceCatalog.Dominant(new (string, float)[0])));
+    }
+
+    [Fact]
+    public void Location_listed_as_spawner_and_dungeon_is_a_spawner_without_loot()
+    {
+        var catalog = new PlaceCatalog(new[] { ("Spawners", "FireHole"), ("Dungeons", "FireHole,Crypt2") }, _ => true, out _);
+
+        Assert.Equal("Spawners", catalog.Category("FireHole"));
+        Assert.False(PlaceCatalog.HasLoot("Spawners"));
+        Assert.Equal("Spawner", PlaceCatalog.Fallback("Spawners"));
+    }
+
+    [Fact]
     public void Place_icon_equal_to_the_resource_icon_or_not_allowed_falls_back()
     {
         Assert.Equal(PlaceIcons.Icon2, PlaceIcons.Resolve(PlaceIcons.Icon2, ResourceIcon, out bool ok));

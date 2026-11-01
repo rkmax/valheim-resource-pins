@@ -61,8 +61,9 @@ File: `BepInEx/config/rkmax.resourcepins.cfg`. Default value in parentheses.
 
 Location prefab names (exact, case-sensitive) for each kind of place.
 
-- `Dungeons`: loot chests are the ones inside, or the ones in the location's area for the ones without interior (CharredFortress, FireHole, HalfBurried_ForestCrypt, Hildir_plainsfortress).
-- `Camps`: loot chests are the ones in the location's area.
+- `Dungeons`: loot chests are the ones inside, or the ones in the location's area for the ones without interior (CharredFortress, HalfBurried_ForestCrypt, Hildir_plainsfortress).
+- `Camps`: loot chests are the ones in the location's area. A camp the game gives no name is called after the creature it spawns most ("Dvergr camp").
+- `Spawners`: creature spawners with no interior and no loot, called after the creature ("Surtling spawner"), no X. A location listed here and in another list counts as a spawner.
 - `Bosses`: boss altars, no X.
 - `Traders`: traders, no X.
 - `LootStands` (`Pickable_BlackCoreStand`): pickable prefab names that count as loot of a place like its chests, searched where the chests are. The place gets the X once they are picked too. Infested mines have no chests, so without this their pin never gets the X.
@@ -93,8 +94,9 @@ Messages in the top-left feed.
 <summary>Default lists</summary>
 
 - `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap`
-- `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, FireHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress`
+- `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress`
 - `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new`
+- `Spawners`: `FireHole`
 - `Bosses`: `Eikthyrnir, GDKing, Bonemass, Dragonqueen, GoblinKing, FaderLocation`
 - `Traders`: `Vendor_BlackForest, Hildir_camp, BogWitch_Camp`
 

@@ -25,6 +25,7 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<Minimap.PinType> PlaceIcon;
     internal static ConfigEntry<string> Dungeons;
     internal static ConfigEntry<string> Camps;
+    internal static ConfigEntry<string> Spawners;
     internal static ConfigEntry<string> Bosses;
     internal static ConfigEntry<string> Traders;
     internal static ConfigEntry<string> LootStands;
@@ -64,12 +65,15 @@ public class Plugin : BaseUnityPlugin
         Dungeons = Config.Bind("Places", "Dungeons",
             "Crypt2,Crypt3,Crypt4,SunkenCrypt4,HalfBurried_ForestCrypt,TrollCave02,MountainCave02,BearCave," +
             "Mistlands_DvergrTownEntrance1,Mistlands_DvergrTownEntrance2,Mistlands_DvergrBossEntrance1,MorgenHole1,MorgenHole2," +
-            "MorgenHole3,TheHole01,TheDarkestHole,FireHole,Hildir_crypt,Hildir_cave,Hildir_plainsfortress,CharredFortress",
+            "MorgenHole3,TheHole01,TheDarkestHole,Hildir_crypt,Hildir_cave,Hildir_plainsfortress,CharredFortress",
             places + " Their loot chests are the ones in the interior.");
         Camps = Config.Bind("Places", "Camps",
             "GoblinCamp2,GoblinCamp2_1,Greydwarf_camp1,LumberCamp,Mistlands_Harbour1,Mistlands_Excavation1,Mistlands_Excavation2," +
             "Mistlands_Excavation3,Mistlands_Lighthouse1_new",
             places + " Their loot chests are the ones within the location's radius.");
+        Spawners = Config.Bind("Places", "Spawners", "FireHole",
+            places + " Creature spawners with no interior and no loot, named after what they spawn. " +
+            "A location listed here and in another list counts as a spawner.");
         Bosses = Config.Bind("Places", "Bosses", "Eikthyrnir,GDKing,Bonemass,Dragonqueen,GoblinKing,FaderLocation", places);
         Traders = Config.Bind("Places", "Traders", "Vendor_BlackForest,Hildir_camp,BogWitch_Camp", places);
         LootStands = Config.Bind("Places", "LootStands", "Pickable_BlackCoreStand",
@@ -101,6 +105,7 @@ public class Plugin : BaseUnityPlugin
         Blocklist.SettingChanged += (_, _) => ResourceIndex.Reset();
         Dungeons.SettingChanged += (_, _) => PlaceIndex.Reset();
         Camps.SettingChanged += (_, _) => PlaceIndex.Reset();
+        Spawners.SettingChanged += (_, _) => PlaceIndex.Reset();
         Bosses.SettingChanged += (_, _) => PlaceIndex.Reset();
         Traders.SettingChanged += (_, _) => PlaceIndex.Reset();
         LootStands.SettingChanged += (_, _) => PlaceIndex.Reset();

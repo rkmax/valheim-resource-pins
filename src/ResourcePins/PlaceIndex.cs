@@ -51,6 +51,7 @@ internal sealed class PlaceIndex
 
         var catalog = new PlaceCatalog(new[]
         {
+            (PlaceCatalog.Spawners, Plugin.Spawners.Value),
             (PlaceCatalog.Dungeons, Plugin.Dungeons.Value),
             ("Camps", Plugin.Camps.Value),
             ("Bosses", Plugin.Bosses.Value),
@@ -68,7 +69,7 @@ internal sealed class PlaceIndex
             if (PlaceCatalog.IsInterior(p.Value) || Plugin.LogEvents.Value)
             {
                 // m_hasInterior is on the prefab: load it for the check as ZoneSystem does, and let it go again.
-                // Dungeons without one (CharredFortress, FireHole...) keep their loot outdoors.
+                // Dungeons without one (CharredFortress...) keep their loot outdoors.
                 l.m_prefab.Load();
                 Location prefab = l.m_prefab.Asset != null ? l.m_prefab.Asset.GetComponent<Location>() : null;
                 hasInterior = prefab != null ? prefab.m_hasInterior : null;
@@ -108,7 +109,7 @@ internal sealed class PlaceIndex
 
     /// <summary>
     /// The location's own name token (its discover label, or the text the game shows when you enter its
-    /// dungeon through a Teleport), or the category's name if it has none. Null while there is no prefab or spawned location to read it from.
+    /// dungeon through a Teleport), else a name from the creature it spawns, or the category's name if it has none. Null while there is no prefab or spawned location to read it from.
     /// </summary>
     internal static string Label(PlaceDef place, ZDO proxy)
     {
@@ -121,7 +122,34 @@ internal sealed class PlaceIndex
         }
         if (loc == null)
             return null;
-        return NameToken(loc) ?? PlaceCatalog.Fallback(place.Category);
+        return Named(loc, place.Category) ?? PlaceCatalog.Fallback(place.Category);
+    }
+
+    private static string Named(Location loc, string category) =>
+        NameToken(loc) ?? PlaceCatalog.CreatureName(category, Creature(loc));
+
+    /// <summary>
+    /// The creature a location spawns most, by its Character name: each CreatureSpawner counts one, each SpawnArea
+    /// one shared out by the weights of its entries. Null if it spawns none.
+    /// </summary>
+    private static string Creature(Location loc)
+    {
+        var found = new List<(string, float)>();
+        foreach (CreatureSpawner s in loc.GetComponentsInChildren<CreatureSpawner>(true))
+            found.Add((CharacterName(s.m_creaturePrefab), 1f));
+        foreach (SpawnArea a in loc.GetComponentsInChildren<SpawnArea>(true))
+        {
+            float total = a.m_prefabs.Sum(p => p.m_weight);
+            foreach (SpawnArea.SpawnData p in a.m_prefabs)
+                found.Add((CharacterName(p.m_prefab), p.m_weight / total));
+        }
+        return PlaceCatalog.Dominant(found);
+    }
+
+    private static string CharacterName(GameObject prefab)
+    {
+        Character c = prefab != null ? prefab.GetComponent<Character>() : null;
+        return c != null && IsNamed(c.m_name) ? Localization.instance.Localize(c.m_name) : null;
     }
 
     private static string NameToken(Location loc)
@@ -131,7 +159,7 @@ internal sealed class PlaceIndex
     }
 
     /// <summary>
-    /// The name token of a configured location, read from its prefab (loaded for the read, as Get does for
+    /// The name of a configured location, read from its prefab (loaded for the read, as Get does for
     /// m_hasInterior), or null if it is not configured or the game gives it no name.
     /// </summary>
     internal string PrefabLabel(string location)
@@ -144,7 +172,7 @@ internal sealed class PlaceIndex
         {
             GameObject asset = place.Location.m_prefab.Asset;
             Location loc = asset != null ? asset.GetComponent<Location>() : null;
-            return loc != null ? NameToken(loc) : null;
+            return loc != null ? Named(loc, place.Category) : null;
         }
         finally
         {
