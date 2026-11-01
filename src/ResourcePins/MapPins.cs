@@ -32,6 +32,8 @@ internal sealed class MapPins : IPinMap
 
     public void SetChecked(object pin, bool value) => ((Minimap.PinData)pin).m_checked = value;
 
+    public void Rename(object pin, string name) => ((Minimap.PinData)pin).m_name = name;
+
     public bool HasPinNear(V3 pos, int type)
     {
         Vector3 p = ToVector(pos);

@@ -190,6 +190,7 @@ public interface IPinMap
     object Add(V3 pos, int type, string name);
     void Remove(object pin);
     void SetChecked(object pin, bool value);
+    void Rename(object pin, string name);
 
     /// <summary>Any pin of this type within 1 m XZ (the rule of Minimap.HaveSimilarPin).</summary>
     bool HasPinNear(V3 pos, int type);
@@ -210,6 +211,7 @@ public sealed class NoMap : IPinMap
     public object Add(V3 pos, int type, string name) => new object();
     public void Remove(object pin) { }
     public void SetChecked(object pin, bool value) { }
+    public void Rename(object pin, string name) { }
     public bool HasPinNear(V3 pos, int type) => false;
     public IEnumerable<object> PinsNear(V3 pos, float distance) => Enumerable.Empty<object>();
     public object FindOwn(V3 pos, int type, string name) => null;
@@ -408,6 +410,14 @@ public sealed class PinRegistry
                 p.IsPlace && p.Item == s.Location && V3.DistanceXZ(p.Anchor, s.Pos) < SimilarPinDistance).ToList();
             if (same.Count > 0)
             {
+                // A pin saved with the generic name takes the kind of place once the game gives one.
+                if (same[0].Label == PlaceCatalog.Fallback(same[0].Category) && s.Label != same[0].Label)
+                {
+                    same[0].Label = s.Label;
+                    map.Rename(same[0].Handle, s.Label);
+                    Touch(s.Node);
+                    Dirty = true;
+                }
                 Member place = same[0].Members[0];
                 _owner.Remove(place.Node);
                 place.Node = s.Node;

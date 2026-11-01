@@ -29,6 +29,7 @@ public class PlaceTests
 
         public void Remove(object pin) => Pins.Remove((FakePin)pin);
         public void SetChecked(object pin, bool value) => ((FakePin)pin).Checked = value;
+        public void Rename(object pin, string name) => ((FakePin)pin).Name = name;
         public bool HasPinNear(V3 pos, int type) => Pins.Any(p => p.Type == type && V3.DistanceXZ(p.Pos, pos) < 1f);
         public object FindOwn(V3 pos, int type, string name) =>
             Pins.FirstOrDefault(p => p.Type == type && p.Name == name && V3.DistanceXZ(p.Pos, pos) < 1f);
@@ -274,5 +275,29 @@ public class PlaceTests
         Assert.Single(reg.Pins);
         Assert.Same(_map.Pins[0], reg.Pins[0].Handle);
         Assert.True(reg.Knows(new NodeId(1, 600)));
+    }
+
+    [Fact]
+    public void Saved_generic_name_becomes_the_kind_of_place_but_a_given_name_stays()
+    {
+        string generic = PlaceCatalog.Fallback(PlaceCatalog.Dungeons);
+        var data = new RegistryData();
+        foreach ((long id, string label, V3 pos) in new[] { (1L, generic, Entrance), (2L, "My base", new V3(500, 30, 500)) })
+        {
+            data.Pins.Add(new PinRecord
+            {
+                Item = "Crypt2", Type = PlaceIcon, Anchor = pos, Category = PlaceCatalog.Dungeons, Label = label,
+                Interior = true, Radius = 12, Members = { new Member { Node = new NodeId(1, id), Kind = MemberKind.Place } },
+            });
+            _map.Add(pos, PlaceIcon, label);
+        }
+        var reg = new PinRegistry(data, worldUid: 1);
+        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+
+        reg.ObservePlaces(_map, new[] { Crypt(id: 10), Crypt(id: 20, pos: new V3(500, 30, 500)) }, new ChestSighting[0], PlaceIcon);
+
+        Assert.Equal("$location_forestcrypt", _map.Pins[0].Name);
+        Assert.Equal("$location_forestcrypt", reg.Pins[0].Label);
+        Assert.Equal("My base", _map.Pins[1].Name);
     }
 }

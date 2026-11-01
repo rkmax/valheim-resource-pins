@@ -31,6 +31,7 @@ public class PinRegistryTests
 
         public void Remove(object pin) => Pins.Remove((FakePin)pin);
         public void SetChecked(object pin, bool value) => ((FakePin)pin).Checked = value;
+        public void Rename(object pin, string name) => ((FakePin)pin).Name = name;
         public bool HasPinNear(V3 pos, int type) => Pins.Any(p => p.Type == type && V3.DistanceXZ(p.Pos, pos) < 1f);
         public object FindOwn(V3 pos, int type, string name) =>
             Pins.FirstOrDefault(p => p.Type == type && p.Name == name && V3.DistanceXZ(p.Pos, pos) < 1f);

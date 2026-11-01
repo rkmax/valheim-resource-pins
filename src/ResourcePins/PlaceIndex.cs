@@ -107,8 +107,8 @@ internal sealed class PlaceIndex
     }
 
     /// <summary>
-    /// The location's own name token (what the game shows when you enter it), or the category's name if it
-    /// has none. Null while there is no prefab or spawned location to read it from.
+    /// The location's own name token (its discover label, or the text the game shows when you enter its
+    /// dungeon through a Teleport), or the category's name if it has none. Null while there is no prefab or spawned location to read it from.
     /// </summary>
     internal static string Label(PlaceDef place, ZDO proxy)
     {
@@ -122,7 +122,11 @@ internal sealed class PlaceIndex
         if (loc == null)
             return null;
         string token = loc.m_discoverLabel;
-        bool named = !string.IsNullOrEmpty(token) && !Localization.instance.Localize(token).StartsWith("[");
-        return named ? token : PlaceCatalog.Fallback(place.Category);
+        if (!IsNamed(token))
+            token = loc.GetComponentsInChildren<Teleport>(true).Select(t => t.m_enterText).FirstOrDefault(IsNamed);
+        return token ?? PlaceCatalog.Fallback(place.Category);
     }
+
+    private static bool IsNamed(string token) =>
+        !string.IsNullOrEmpty(token) && !Localization.instance.Localize(token).StartsWith("[");
 }
