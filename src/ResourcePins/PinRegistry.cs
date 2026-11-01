@@ -404,13 +404,16 @@ public sealed class PinRegistry
 
     /// <summary>
     /// Gives the place pins still carrying the generic name the name of their location, from
-    /// <paramref name="labelOf"/> (location prefab name -> name token, null when the game gives none).
+    /// <paramref name="labelOf"/> (location prefab name -> name token, null when the game gives none), which
+    /// is asked once per location.
     /// </summary>
     public void RelabelPlaces(IPinMap map, Func<string, string> labelOf)
     {
+        var labels = new Dictionary<string, string>();
         foreach (PinRecord pin in _data.Pins.Where(p => p.IsPlace && p.Label == PlaceCatalog.Fallback(p.Category)))
         {
-            string label = labelOf(pin.Item);
+            if (!labels.TryGetValue(pin.Item, out string label))
+                labels[pin.Item] = label = labelOf(pin.Item);
             if (label != null && label != pin.Label)
             {
                 Relabel(map, pin, label);

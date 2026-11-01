@@ -306,7 +306,7 @@ public class PlaceTests
     {
         string generic = PlaceCatalog.Fallback(PlaceCatalog.Dungeons);
         var data = new RegistryData();
-        foreach ((string item, string label) in new[] { ("Crypt2", generic), ("FireHole", generic), ("Crypt3", "My crypt") })
+        foreach ((string item, string label) in new[] { ("Crypt2", generic), ("FireHole", generic), ("Crypt3", "My crypt"), ("Crypt2", generic) })
         {
             data.Pins.Add(new PinRecord
             {
@@ -318,9 +318,15 @@ public class PlaceTests
         var reg = new PinRegistry(data, worldUid: 1);
         reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
 
-        reg.RelabelPlaces(_map, item => item == "Crypt2" || item == "Crypt3" ? "$location_forestcrypt" : null);
+        var asked = new List<string>();
+        reg.RelabelPlaces(_map, item =>
+        {
+            asked.Add(item);
+            return item == "Crypt2" || item == "Crypt3" ? "$location_forestcrypt" : null;
+        });
 
-        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt" }, _map.Pins.Select(p => p.Name));
-        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt" }, reg.Pins.Select(p => p.Label));
+        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt", "$location_forestcrypt" }, _map.Pins.Select(p => p.Name));
+        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt", "$location_forestcrypt" }, reg.Pins.Select(p => p.Label));
+        Assert.Equal(new[] { "Crypt2", "FireHole" }, asked);
     }
 }
