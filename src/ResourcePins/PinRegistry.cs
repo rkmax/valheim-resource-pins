@@ -394,6 +394,31 @@ public sealed class PinRegistry
         }
     }
 
+    private void Relabel(IPinMap map, PinRecord pin, string label)
+    {
+        pin.Label = label;
+        if (pin.Handle != null)
+            map.Rename(pin.Handle, label);
+        Dirty = true;
+    }
+
+    /// <summary>
+    /// Gives the place pins still carrying the generic name the name of their location, from
+    /// <paramref name="labelOf"/> (location prefab name -> name token, null when the game gives none).
+    /// </summary>
+    public void RelabelPlaces(IPinMap map, Func<string, string> labelOf)
+    {
+        foreach (PinRecord pin in _data.Pins.Where(p => p.IsPlace && p.Label == PlaceCatalog.Fallback(p.Category)))
+        {
+            string label = labelOf(pin.Item);
+            if (label != null && label != pin.Label)
+            {
+                Relabel(map, pin, label);
+                Touch(pin.Members[0].Node);
+            }
+        }
+    }
+
     /// <summary>
     /// Pins new places and records the contents of their loot chests. A chest belongs to the place pin whose
     /// area holds it (<see cref="PlaceCatalog.OwnsChest"/>); a chest read as unknown leaves the known set.
@@ -413,10 +438,8 @@ public sealed class PinRegistry
                 // A pin saved with the generic name takes the kind of place once the game gives one.
                 if (same[0].Label == PlaceCatalog.Fallback(same[0].Category) && s.Label != same[0].Label)
                 {
-                    same[0].Label = s.Label;
-                    map.Rename(same[0].Handle, s.Label);
+                    Relabel(map, same[0], s.Label);
                     Touch(s.Node);
-                    Dirty = true;
                 }
                 Member place = same[0].Members[0];
                 _owner.Remove(place.Node);

@@ -300,4 +300,27 @@ public class PlaceTests
         Assert.Equal("$location_forestcrypt", reg.Pins[0].Label);
         Assert.Equal("My base", _map.Pins[1].Name);
     }
+
+    [Fact]
+    public void Saved_generic_pins_far_away_are_named_on_load_without_being_seen()
+    {
+        string generic = PlaceCatalog.Fallback(PlaceCatalog.Dungeons);
+        var data = new RegistryData();
+        foreach ((string item, string label) in new[] { ("Crypt2", generic), ("FireHole", generic), ("Crypt3", "My crypt") })
+        {
+            data.Pins.Add(new PinRecord
+            {
+                Item = item, Type = PlaceIcon, Anchor = new V3(data.Pins.Count * 100, 30, 0), Category = PlaceCatalog.Dungeons,
+                Label = label, Members = { new Member { Node = new NodeId(1, data.Pins.Count), Kind = MemberKind.Place } },
+            });
+            _map.Add(data.Pins[^1].Anchor, PlaceIcon, label);
+        }
+        var reg = new PinRegistry(data, worldUid: 1);
+        reg.Bind(_map.Pins.Select(p => ((object)p, p.Pos, p.Type)).ToList());
+
+        reg.RelabelPlaces(_map, item => item == "Crypt2" || item == "Crypt3" ? "$location_forestcrypt" : null);
+
+        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt" }, _map.Pins.Select(p => p.Name));
+        Assert.Equal(new[] { "$location_forestcrypt", generic, "My crypt" }, reg.Pins.Select(p => p.Label));
+    }
 }

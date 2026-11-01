@@ -21,6 +21,7 @@ internal static class Tracker
     private static readonly List<PlaceSighting> _places = new();
     private static readonly List<ChestSighting> _chests = new();
     private static PinRegistry _registry;
+    private static bool _relabeled;
     private static string _path;
     private static float _nextScan;
 
@@ -53,6 +54,7 @@ internal static class Tracker
 
         _path = Path.Combine(Paths.BepInExRootPath, "ResourcePins", FileName($"{world.m_name}_{profile.GetName()}") + ".json");
         _registry = new PinRegistry(Load(_path), world.m_uid) { Log = PinLog.Event };
+        _relabeled = false;
         _registry.Log += Notices.Event;
         Notices.Mute();
         MapFilter.Reset();
@@ -93,6 +95,12 @@ internal static class Tracker
         Vector3 pos = player.transform.position;
         float radius = Plugin.ScanRadius.Value;
         PlaceIndex places = PlaceIndex.Get();
+        if (places != null && !_relabeled)
+        {
+            // Saved pins from before places had names: every one gets its name now, not when it is next seen.
+            _registry.RelabelPlaces(_map, places.PrefabLabel);
+            _relabeled = true;
+        }
         Scan(index, places, pos, radius);
         _registry.Observe(_map, _seen, (int)Plugin.PinIcon.Value, Plugin.MergeRadius.Value);
         if (places != null)

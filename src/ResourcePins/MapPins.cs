@@ -32,7 +32,14 @@ internal sealed class MapPins : IPinMap
 
     public void SetChecked(object pin, bool value) => ((Minimap.PinData)pin).m_checked = value;
 
-    public void Rename(object pin, string name) => ((Minimap.PinData)pin).m_name = name;
+    public void Rename(object pin, string name)
+    {
+        var data = (Minimap.PinData)pin;
+        data.m_name = name;
+        // The large map's name text is built once from m_name (PinNameData.SetTextAndGameObject).
+        if (data.m_NamePinData?.PinNameText != null)
+            data.m_NamePinData.PinNameText.text = Localization.instance.Localize(name);
+    }
 
     public bool HasPinNear(V3 pos, int type)
     {

@@ -121,10 +121,35 @@ internal sealed class PlaceIndex
         }
         if (loc == null)
             return null;
+        return NameToken(loc) ?? PlaceCatalog.Fallback(place.Category);
+    }
+
+    private static string NameToken(Location loc)
+    {
         string token = loc.m_discoverLabel;
-        if (!IsNamed(token))
-            token = loc.GetComponentsInChildren<Teleport>(true).Select(t => t.m_enterText).FirstOrDefault(IsNamed);
-        return token ?? PlaceCatalog.Fallback(place.Category);
+        return IsNamed(token) ? token : loc.GetComponentsInChildren<Teleport>(true).Select(t => t.m_enterText).FirstOrDefault(IsNamed);
+    }
+
+    /// <summary>
+    /// The name token of a configured location, read from its prefab (loaded for the read, as Get does for
+    /// m_hasInterior), or null if it is not configured or the game gives it no name.
+    /// </summary>
+    internal string PrefabLabel(string location)
+    {
+        PlaceDef place = Places.Values.FirstOrDefault(p => p.Location.m_prefab.Name == location);
+        if (place == null)
+            return null;
+        place.Location.m_prefab.Load();
+        try
+        {
+            GameObject asset = place.Location.m_prefab.Asset;
+            Location loc = asset != null ? asset.GetComponent<Location>() : null;
+            return loc != null ? NameToken(loc) : null;
+        }
+        finally
+        {
+            place.Location.m_prefab.Release();
+        }
     }
 
     private static bool IsNamed(string token) =>
