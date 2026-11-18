@@ -93,7 +93,7 @@ Messages in the top-left feed.
 <details>
 <summary>Default lists</summary>
 
-- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap, Tar, Fiddleheadfern, MushroomSmokePuff, QueenBee, SulfurStone, ProustitePowder, Vineberry, Ice, GoldOre, Frostwood, Lingonberry, KaleSeeds, Snowball`
+- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap, Tar, Fiddleheadfern, MushroomSmokePuff, QueenBee, SulfurStone, ProustitePowder, Vineberry, Ice, GoldOre, Lingonberry, KaleSeeds, Snowball`
 - `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress, MorkBorg`
 - `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new, Mistlands_RockSpire1, Mistlands_GuardTower1_ruined_new, Mistlands_GuardTower3_ruined_new, FrozenShip01_DN, FrozenShip02_DN, FrozenShip03_DN, DN_hut01`
 - `Spawners`: `FireHole`

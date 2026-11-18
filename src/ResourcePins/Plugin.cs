@@ -45,7 +45,7 @@ public class Plugin : BaseUnityPlugin
         Items = Config.Bind("General", "Items",
             "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
             "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
-            "ProustitePowder,Vineberry,Ice,GoldOre,Frostwood,Lingonberry,KaleSeeds,Snowball",
+            "ProustitePowder,Vineberry,Ice,GoldOre,Lingonberry,KaleSeeds,Snowball",
             "Item prefab names (case-sensitive) whose nodes get a pin. Unknown names are logged and ignored.");
         Blocklist = Config.Bind("General", "Blocklist", "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*,morkhalla_*,PropFeast*",
             "Prefab names that never get a pin, comma-separated; * matches anything, case-insensitive.");
@@ -88,7 +88,10 @@ public class Plugin : BaseUnityPlugin
             "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap",
             "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
             "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
-            "ProustitePowder,Vineberry");
+            "ProustitePowder,Vineberry",
+            "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
+            "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
+            "ProustitePowder,Vineberry,Ice,GoldOre,Frostwood,Lingonberry,KaleSeeds,Snowball");
         UpgradeDefault(Blocklist,
             "dvergr*,prop_*,*trashpile*,barrell*,morgenhole*",
             "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*");
