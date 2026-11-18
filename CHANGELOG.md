@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+
+- Frostwood is out of the default `Items`: Deep North has too many trees. A config still at the 0.3.1 default takes the new one.
+- Pins of an item that is not in your `Items` leave your map, also the ones other players or the server send. Nothing is marked gone, so players who still pin that item keep their pins.
+
 ## 0.3.1
 
 - Deep North: new default items Ice, GoldOre, Frostwood, Lingonberry, KaleSeeds and Snowball, and new default places: the frozen ships and DN_hut01 (camps) and DN_Bossroom (boss). Deep North furniture (`morkhalla_*`, `PropFeast*`) is blocklisted.
