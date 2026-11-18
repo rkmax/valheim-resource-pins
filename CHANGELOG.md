@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Deep North: new default items Ice, GoldOre, Frostwood, Lingonberry, KaleSeeds and Snowball, and new default places: the frozen ships and DN_hut01 (camps) and DN_Bossroom (boss). Deep North furniture (`morkhalla_*`, `PropFeast*`) is blocklisted.
+- A list in your config file that still has the default of an older version (`Items`, `Blocklist`, `Camps`, `Bosses`) now takes the new default. Lists you edited keep their values.
+- No sync protocol change: works with 0.3.0 players and servers.
+
 ## 0.3.0
 
 Includes 0.2.1, which was never released on GitHub.
