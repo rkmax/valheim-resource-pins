@@ -301,4 +301,17 @@ public class PinRegistryTests
         Assert.Empty(_map.Pins);
         Assert.Empty(_reg.Pins);
     }
+
+    [Fact]
+    public void ItemTakenOutOfItemsLeavesTheMapWithoutBeingMarkedGone()
+    {
+        See(Node(0), Node(100, "Frostwood"));
+        _reg.TakeDelta(p => ((FakePin)p).Name);
+
+        _reg.DropItems(_map, item => item != "Frostwood");
+
+        Assert.Equal(new[] { "CopperOre" }, _reg.Pins.Select(p => p.Item));
+        Assert.Single(_map.Pins);
+        Assert.True(_reg.TakeDelta(p => ((FakePin)p).Name)?.IsEmpty ?? true);
+    }
 }

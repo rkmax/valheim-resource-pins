@@ -558,6 +558,21 @@ public sealed class PinRegistry
     }
 
     /// <summary>
+    /// Takes off the map the resource pins of items this player does not pin (taken out of Items), without marking
+    /// their nodes gone: other players keep theirs.
+    /// </summary>
+    public void DropItems(IPinMap map, Func<string, bool> pinned)
+    {
+        foreach (PinRecord pin in _data.Pins.Where(p => !p.IsPlace && !pinned(p.Item)).ToList())
+        {
+            _changed.ExceptWith(pin.Members);
+            Forget(pin, ignore: false);
+            map.Remove(pin.Handle);
+            Log?.Invoke("remove", pin, "not in Items");
+        }
+    }
+
+    /// <summary>
     /// Pins new places and records the contents of their loot chests. A chest belongs to the place pin whose
     /// area holds it (<see cref="PlaceCatalog.OwnsChest"/>); a chest read as unknown leaves the known set.
     /// </summary>

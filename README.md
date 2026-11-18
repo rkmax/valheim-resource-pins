@@ -43,7 +43,7 @@ File: `BepInEx/config/rkmax.resourcepins.cfg`. Default value in parentheses.
 ### General
 
 - `Enabled` (true): adds and updates pins.
-- `Items`: item prefab names to pin (case-sensitive). Unknown names go to the log and are ignored. `Sap` pins the ancient roots for the Sap Extractor. A list still at the default of an older version gets the new default when you update; a list you edited stays as it is, so add new names by hand.
+- `Items`: item prefab names to pin (case-sensitive). Unknown names go to the log and are ignored. `Sap` pins the ancient roots for the Sap Extractor. A list still at the default of an older version gets the new default when you update; a list you edited stays as it is, so add new names by hand. Taking an item out removes its pins from your map.
 - `Blocklist` (`dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*,morkhalla_*,PropFeast*`): prefab names that never get a pin, `*` matches anything.
 
 ### Scan

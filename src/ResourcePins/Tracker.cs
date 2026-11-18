@@ -103,6 +103,7 @@ internal static class Tracker
             _relabeled = true;
         }
         Scan(index, places, pos, radius);
+        _registry.DropItems(_map, _indexed.Contains);
         _registry.Observe(_map, _seen, (int)Plugin.PinIcon.Value, Plugin.MergeRadius.Value);
         if (places != null)
             _registry.ObservePlaces(_map, _places, _chests, places.Icon);
@@ -124,6 +125,12 @@ internal static class Tracker
         PlaceIndex places = PlaceIndex.Get();
         if (places == null)
             batch.Places.Clear();
+        Dictionary<int, IndexEntry> index = ResourceIndex.Get();
+        if (index != null)
+        {
+            var pinned = new HashSet<string>(index.Values.Select(e => e.Resource.Item));
+            batch.Resources.RemoveAll(r => !pinned.Contains(r.Item));
+        }
         if (full)
             Notices.Mute();
         _registry.ApplyRemote(_map, batch, (int)Plugin.PinIcon.Value, Plugin.MergeRadius.Value, places?.Icon ?? PlaceIcons.Default);
@@ -215,7 +222,8 @@ internal static class Tracker
 
     /// <summary>
     /// A node of the item at that position in this scan, which reads every indexed ZDO within the radius. An item the
-    /// index no longer covers (taken out of Items) is not seen at all, so its nodes count as there.
+    /// index no longer covers (taken out of Items) is not seen at all, so its nodes count as there; DropItems takes
+    /// its pins away without marking them gone.
     /// </summary>
     private static bool NodeAt(string item, V3 pos) =>
         !_indexed.Contains(item) || _seen.Any(s => s.Item == item && V3.DistanceXZ(s.Pos, pos) < PinRegistry.SameNodeDistance);
