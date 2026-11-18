@@ -43,8 +43,8 @@ File: `BepInEx/config/rkmax.resourcepins.cfg`. Default value in parentheses.
 ### General
 
 - `Enabled` (true): adds and updates pins.
-- `Items`: item prefab names to pin (case-sensitive). Unknown names go to the log and are ignored. `Sap` pins the ancient roots for the Sap Extractor. An old config file keeps its old list, add new names by hand.
-- `Blocklist` (`dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*`): prefab names that never get a pin, `*` matches anything.
+- `Items`: item prefab names to pin (case-sensitive). Unknown names go to the log and are ignored. `Sap` pins the ancient roots for the Sap Extractor. A list still at the default of an older version gets the new default when you update; a list you edited stays as it is, so add new names by hand.
+- `Blocklist` (`dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*,morkhalla_*,PropFeast*`): prefab names that never get a pin, `*` matches anything.
 
 ### Scan
 
@@ -93,11 +93,11 @@ Messages in the top-left feed.
 <details>
 <summary>Default lists</summary>
 
-- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap, Tar, Fiddleheadfern, MushroomSmokePuff, QueenBee, SulfurStone, ProustitePowder, Vineberry`
+- `Items`: `CopperOre, TinOre, IronScrap, SilverOre, Obsidian, BlackMarble, Softtissue, FlametalOreNew, Raspberry, Blueberries, Cloudberry, Mushroom, MushroomYellow, DragonEgg, Sap, Tar, Fiddleheadfern, MushroomSmokePuff, QueenBee, SulfurStone, ProustitePowder, Vineberry, Ice, GoldOre, Frostwood, Lingonberry, KaleSeeds, Snowball`
 - `Dungeons`: `Crypt2, Crypt3, Crypt4, SunkenCrypt4, HalfBurried_ForestCrypt, TrollCave02, MountainCave02, BearCave, Mistlands_DvergrTownEntrance1, Mistlands_DvergrTownEntrance2, Mistlands_DvergrBossEntrance1, MorgenHole1, MorgenHole2, MorgenHole3, TheHole01, TheDarkestHole, Hildir_crypt, Hildir_cave, Hildir_plainsfortress, CharredFortress, MorkBorg`
-- `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new, Mistlands_RockSpire1, Mistlands_GuardTower1_ruined_new, Mistlands_GuardTower3_ruined_new`
+- `Camps`: `GoblinCamp2, GoblinCamp2_1, Greydwarf_camp1, LumberCamp, Mistlands_Harbour1, Mistlands_Excavation1, Mistlands_Excavation2, Mistlands_Excavation3, Mistlands_Lighthouse1_new, Mistlands_RockSpire1, Mistlands_GuardTower1_ruined_new, Mistlands_GuardTower3_ruined_new, FrozenShip01_DN, FrozenShip02_DN, FrozenShip03_DN, DN_hut01`
 - `Spawners`: `FireHole`
-- `Bosses`: `Eikthyrnir, GDKing, Bonemass, Dragonqueen, GoblinKing, FaderLocation`
+- `Bosses`: `Eikthyrnir, GDKing, Bonemass, Dragonqueen, GoblinKing, FaderLocation, DN_Bossroom`
 - `Traders`: `Vendor_BlackForest, Hildir_camp, BogWitch_Camp`
 
 </details>

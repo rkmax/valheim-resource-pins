@@ -45,9 +45,9 @@ public class Plugin : BaseUnityPlugin
         Items = Config.Bind("General", "Items",
             "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
             "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
-            "ProustitePowder,Vineberry",
+            "ProustitePowder,Vineberry,Ice,GoldOre,Frostwood,Lingonberry,KaleSeeds,Snowball",
             "Item prefab names (case-sensitive) whose nodes get a pin. Unknown names are logged and ignored.");
-        Blocklist = Config.Bind("General", "Blocklist", "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*",
+        Blocklist = Config.Bind("General", "Blocklist", "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*,morkhalla_*,PropFeast*",
             "Prefab names that never get a pin, comma-separated; * matches anything, case-insensitive.");
 
         ScanRadius = Config.Bind("Scan", "ScanRadius", 40f,
@@ -70,16 +70,34 @@ public class Plugin : BaseUnityPlugin
             places + " Their loot chests are the ones in the interior.");
         Camps = Config.Bind("Places", "Camps",
             "GoblinCamp2,GoblinCamp2_1,Greydwarf_camp1,LumberCamp,Mistlands_Harbour1,Mistlands_Excavation1,Mistlands_Excavation2," +
-            "Mistlands_Excavation3,Mistlands_Lighthouse1_new,Mistlands_RockSpire1,Mistlands_GuardTower1_ruined_new,Mistlands_GuardTower3_ruined_new",
+            "Mistlands_Excavation3,Mistlands_Lighthouse1_new,Mistlands_RockSpire1,Mistlands_GuardTower1_ruined_new,Mistlands_GuardTower3_ruined_new," +
+            "FrozenShip01_DN,FrozenShip02_DN,FrozenShip03_DN,DN_hut01",
             places + " Their loot chests are the ones within the location's radius.");
         Spawners = Config.Bind("Places", "Spawners", "FireHole",
             places + " Creature spawners with no interior and no loot, named after what they spawn. " +
             "A location listed here and in another list counts as a spawner.");
-        Bosses = Config.Bind("Places", "Bosses", "Eikthyrnir,GDKing,Bonemass,Dragonqueen,GoblinKing,FaderLocation", places);
+        Bosses = Config.Bind("Places", "Bosses", "Eikthyrnir,GDKing,Bonemass,Dragonqueen,GoblinKing,FaderLocation,DN_Bossroom", places);
         Traders = Config.Bind("Places", "Traders", "Vendor_BlackForest,Hildir_camp,BogWitch_Camp", places);
         LootStands = Config.Bind("Places", "LootStands", "Pickable_BlackCoreStand,Pickable_MoltenCoreStand,Pickable_SurtlingCoreStand",
             "Pickable prefab names (case-sensitive, comma-separated) that count as a place's loot like its chests: " +
             "the place gets the X once they are picked too. Unknown names are logged and ignored.");
+
+        // Lists still at a default an older version shipped take the new default; lists a player edited keep theirs.
+        UpgradeDefault(Items,
+            "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
+            "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap",
+            "CopperOre,TinOre,IronScrap,SilverOre,Obsidian,BlackMarble,Softtissue,FlametalOreNew,Raspberry,Blueberries," +
+            "Cloudberry,Mushroom,MushroomYellow,DragonEgg,Sap,Tar,Fiddleheadfern,MushroomSmokePuff,QueenBee,SulfurStone," +
+            "ProustitePowder,Vineberry");
+        UpgradeDefault(Blocklist,
+            "dvergr*,prop_*,*trashpile*,barrell*,morgenhole*",
+            "dvergrprops_pickaxe,dvergrprops_crate,dvergrprops_lantern,dvergrtown_*,prop_*,*trashpile*,barrell*,morgenhole*");
+        UpgradeDefault(Camps,
+            "GoblinCamp2,GoblinCamp2_1,Greydwarf_camp1,LumberCamp,Mistlands_Harbour1,Mistlands_Excavation1,Mistlands_Excavation2," +
+            "Mistlands_Excavation3,Mistlands_Lighthouse1_new",
+            "GoblinCamp2,GoblinCamp2_1,Greydwarf_camp1,LumberCamp,Mistlands_Harbour1,Mistlands_Excavation1,Mistlands_Excavation2," +
+            "Mistlands_Excavation3,Mistlands_Lighthouse1_new,Mistlands_RockSpire1,Mistlands_GuardTower1_ruined_new,Mistlands_GuardTower3_ruined_new");
+        UpgradeDefault(Bosses, "Eikthyrnir,GDKing,Bonemass,Dragonqueen,GoblinKing,FaderLocation");
 
         NotifyAdded = Config.Bind("Notices", "Added", true, "Shows a top-left message when a resource gets a pin.");
         NotifyRemoved = Config.Bind("Notices", "Removed", true, "Shows a top-left message when a pin goes away because its resource is gone.");
@@ -122,5 +140,13 @@ public class Plugin : BaseUnityPlugin
         MapFilter.Tick();
         ServerStore.Tick();
         PinSync.Flush();
+    }
+
+    private static void UpgradeDefault(ConfigEntry<string> entry, params string[] oldDefaults)
+    {
+        if (System.Array.IndexOf(oldDefaults, entry.Value) < 0)
+            return;
+        entry.Value = (string)entry.DefaultValue;
+        Log.LogInfo($"{entry.Definition.Key}: updated to the new default list.");
     }
 }
